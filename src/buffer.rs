@@ -1,8 +1,11 @@
 ///
-/// ...
+/// Struct 'Buffer'
+/// - 'array' -  vector for buffers values
+/// - 'index' - length of the buffer
 pub struct Buffer {
     array: Vec<i16>,
     index: usize,
+    len: usize,
 }
 //
 //
@@ -12,23 +15,22 @@ impl Buffer{
     /// - `len` - length of the buffer
     pub fn new(len: usize) -> Buffer{
         Buffer{
-            array: Vec::with_capacity(len),
-            index: len,
+            array: vec![0; len],
+            index: 0,
+            len,
         }
     }
     ///
-    /// - Adds new angle value to the buffer
-    /// - Returns buffer if if's full
+    /// - Adds new angle value to the buffer and returns "None"
+    /// - Returns buffer it self if it's full
     pub fn add(&mut self, angle: f64) -> Option<Vec<i16>>{
-        match self.array.len() < self.index {
-            true => {
-                self.array.push(angle.round() as i16);
-                None
-            }
-            false => {
-                Some(self.array.clone())
-            }
-        }
-
+        self.array[self.index] = angle.round() as i16;
+        let result = if self.index < (self.len - 1) {
+            None
+        } else {
+            Some(self.array.clone())
+        };
+        self.index = (self.index + 1) % self.len;
+        result
     }
 }
