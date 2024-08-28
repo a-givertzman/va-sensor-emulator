@@ -1,8 +1,10 @@
 mod buffer;
 mod angle;
+// mod amplitude;
+mod stuff;
+
 #[cfg(test)]
 mod tests;
-mod amplitude;
 
 use angle::Angle;
 use buffer::Buffer;

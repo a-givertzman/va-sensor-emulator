@@ -11,7 +11,7 @@ pub struct Angle {
 //
 //
 impl Angle {
-    const PI2: f64 = 2.0 * PI;
+    pub const PI2: f64 = 2.0 * PI;
     ///
     /// ....
     /// - `freq` - sampling frequency
