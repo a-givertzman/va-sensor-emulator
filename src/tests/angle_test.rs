@@ -20,9 +20,9 @@ mod angle {
     ///  - ...
     fn init_each() -> () {}
     ///
-    /// Testing that las `angle` is equal to `delta`
+    /// Testing that `count` of steps is equal to `freq`
     #[test]
-    fn check_last_angle() {
+    fn check_ste_count() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
         init_once();
         init_each();
