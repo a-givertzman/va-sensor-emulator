@@ -1,6 +1,6 @@
 mod buffer;
 mod angle;
-// mod amplitude;
+//mod amplitude;
 mod stuff;
 
 #[cfg(test)]
@@ -19,7 +19,7 @@ fn main() {
     loop {
         let angle_value = angle.add();
         match buffer.add(angle_value) {
-            Some(pack) => { // Some(_)
+            Some(_) => { // Some(_)
                 // send buffer
                 //println!("Created array is {:?}", buffer.array);
                 //buffer.array.clear();

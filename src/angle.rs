@@ -1,7 +1,11 @@
 use std::f64::consts::PI;
 
 ///
-/// 
+/// Struct `Angle`
+/// - `freq` - sampling frequency
+/// - `angle` - initial angle in radians
+/// - `delta` - the difference between the current and previous angle
+/// - `lim` - the limit for the angle
 pub struct Angle {
     freq: f64,
     angle: f64,
@@ -15,7 +19,7 @@ impl Angle {
     ///
     /// ....
     /// - `freq` - sampling frequency
-    /// - `phase` - initian angle in radians
+    /// - `angle` - initial angle in radians
     pub fn new(freq: usize, phase: f64) -> Self {
         let delta = Self::PI2 / (freq as f64);
         Self {
@@ -30,10 +34,5 @@ impl Angle {
     pub fn add(&mut self) -> f64 {
         self.angle = (self.angle + self.delta) % self.lim;
         self.angle
-    }
-    ///
-    /// 
-    pub fn freq(&self) -> f64 {
-        self.freq
     }
 }
