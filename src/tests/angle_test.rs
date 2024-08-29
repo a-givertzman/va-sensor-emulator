@@ -41,21 +41,25 @@ mod angle {
             (08, 300_000),
         ];
         for (step, freq) in test_data {
-            let target = freq as f64;
-            let mut count = 1.;
-            let mut angle = Angle::new(freq, 0.0);
+            let target = freq;
+            let mut count = 0;
             log::debug!("frequency: {}", target);
-            let mut angle_;
+            let mut angle = Angle::new(freq, 0.0);
+            let mut angle_ = 0.;
+            count += 1; // adding the initial angle
             loop{
                 angle_ = angle.add();
-                count += 1.0;
-                if(angle_ >= (Angle::PI2 - (Angle::PI2/ freq as f64) * 1.5)){
+                count += 1;
+                if(angle_ >= Angle::PI2 - (Angle::PI2/freq as f64)* 1.5){
+                    log::debug!("last added angle: {}", angle_);
                     break;
                 }
             }
+            
             log::debug!("step {} \nresult: {:?}\ntarget: {:?}", step, count, target);
             assert!(target == count, "step {} \nresult: {:?}\ntarget: {:?}", step, count, target);
         }
+        
         test_duration.exit();
     }    
     ///
@@ -93,6 +97,7 @@ mod angle {
                 if angle_ >= (Angle::PI2 - target * 1.5) {
                     let result = Angle::PI2 - angle_;
                     let result_grad = 180.0 * result / PI;
+                    log::debug!("angle_:{}", angle_);
                     log::debug!("step {} \nresult: {:?} ({})\ntarget: {:?} ({})", step, result, result_grad, target, target_grad);
                     assert!(result.aprox_eq(target, 3), "step {} \nresult: {:?} ({})\ntarget: {:?} ({})", step, result, result_grad, target, target_grad);
                     flag = true;
