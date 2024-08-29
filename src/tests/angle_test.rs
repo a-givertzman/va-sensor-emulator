@@ -41,24 +41,20 @@ mod angle {
             (08, 300_000),
         ];
         for (step, freq) in test_data {
-            let target = Angle::PI2 / (freq as f64);
-            let target_grad = 180.0 * target / PI;
-            let count = freq;
+            let target = freq as f64;
+            let mut count = 1.;
             let mut angle = Angle::new(freq, 0.0);
-            log::debug!("delta: {} ({})", target, target_grad);
-            let mut flag = false;
-            for index in 0..count {
-                let angle_ = angle.add();
-                log::trace!("{} | angle: {} ({})", index, angle_, 180.0 * angle_ / PI);
-                if angle_ >= (Angle::PI2 - target * 1.5) {
-                    let result = Angle::PI2 - angle_;
-                    let result_grad = 180.0 * result / PI;
-                    log::debug!("step {} \nresult: {:?} ({})\ntarget: {:?} ({})", step, result, result_grad, target, target_grad);
-                    assert!(result.aprox_eq(target, 3), "step {} \nresult: {:?} ({})\ntarget: {:?} ({})", step, result, result_grad, target, target_grad);
-                    flag = true;
+            log::debug!("frequency: {}", target);
+            let mut angle_;
+            loop{
+                angle_ = angle.add();
+                count += 1.0;
+                if(angle_ >= (Angle::PI2 - (Angle::PI2/ freq as f64) * 1.5)){
+                    break;
                 }
             }
-            assert!(flag == true, "step {} \nresult: {:?} \ntarget: {:?} ", step, flag, true);
+            log::debug!("step {} \nresult: {:?}\ntarget: {:?}", step, count, target);
+            assert!(target == count, "step {} \nresult: {:?}\ntarget: {:?}", step, count, target);
         }
         test_duration.exit();
     }    
@@ -92,6 +88,7 @@ mod angle {
             let mut flag = false;
             for index in 0..count {
                 let angle_ = angle.add();
+
                 log::trace!("{} | angle: {} ({})", index, angle_, 180.0 * angle_ / PI);
                 if angle_ >= (Angle::PI2 - target * 1.5) {
                     let result = Angle::PI2 - angle_;
