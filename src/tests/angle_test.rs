@@ -22,7 +22,7 @@ mod angle {
     ///
     /// Testing that `count` of steps is equal to `freq`
     #[test]
-    fn check_ste_count() {
+    fn check_step_count() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
         init_once();
         init_each();
