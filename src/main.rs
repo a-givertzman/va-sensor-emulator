@@ -1,6 +1,6 @@
 mod buffer;
 mod angle;
-//mod amplitude;
+mod amplitude;
 mod stuff;
 
 #[cfg(test)]
