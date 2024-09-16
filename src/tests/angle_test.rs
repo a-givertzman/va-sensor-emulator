@@ -63,7 +63,7 @@ mod angle {
         test_duration.exit();
     }    
     ///
-    /// Testing that las `angle` is equal to `delta`
+    /// Testing that last `angle` is equal to `delta`
     #[test]
     fn check_last_angle() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);

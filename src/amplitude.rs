@@ -1,10 +1,7 @@
-use crate::angle::Angle;
-
-///
-/// 
 pub struct Amplitude{
     value: f64,
-    array: Vec<i16>,
+    array_a: Vec<f64>,
+    array_phi: Vec<f64>,
 }
 //
 //
@@ -13,25 +10,23 @@ impl Amplitude{
     /// Creates `Amplitude` with
     /// - `value` - value of the amplitude
     /// - `len` - length of the buffer
-    pub fn new(len:usize) -> Self{
+    pub fn new(array_a: Vec<f64>, array_phi: Vec<f64>) -> Self{
         Self{
             value: 0.,
-            array: Vec::new(),
+            array_a,
+            array_phi,
         }
     }
     ///
     /// - Calculates new amplitude
     /// - Returns calculated value
-    pub fn calc(&mut self, arrayA: &Vec<f64>, arrayK: &Vec<f64>, angle: f64) -> f64{
+    pub fn calc(&mut self, angle: f64) -> f64{
         self.value = 0.;
-        for i in 0..arrayA.len(){
-        //for i in 0..self.array.len() {
-            if(i< arrayK.len() && i < arrayA.len()){
-                self.value += arrayA[i] * (arrayK[i]+angle).sin();
-            }
+        log::debug!("angle: {}", angle);
+        for i in 0..self.array_a.len(){
+            self.value += self.array_a[i]*(angle + self.array_phi[i]).sin();
         }
-        self.array.push(self.value as i16);
-        //println!("{:?}", self.array);
         self.value
     }
+
 }
