@@ -1,7 +1,8 @@
 mod buffer;
 mod angle;
-//mod amplitude;
+mod amplitude;
 mod stuff;
+mod complex;
 
 #[cfg(test)]
 mod tests;
@@ -11,6 +12,7 @@ use buffer::Buffer;
 //
 //
 fn main() {
+
     let buffer_len = 1024;      // to be loaded from the config.yaml
     let sample_freq = 320_000;  // to be loaded from the config.yaml
     let phase = 0.0;  // to be loaded from the config.yaml

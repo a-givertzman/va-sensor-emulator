@@ -1,28 +1,43 @@
 ///
+/// Amplitude ....
 /// 
-pub struct Amplitude{
-    value: f64,
-    array: Vec<i16>,
+/// Conf Example:
+/// ```yaml
+///     # A:   ϕ, rad
+///      10.1: 0.0
+///      07.7: 0.0
+///     120.0: 0.0
+/// ```
+pub struct Amplitude {
+    /// `Vec<(A, ϕ)>`
+    params: Vec<(f64, f64)>,
 }
 //
 //
-impl Amplitude{
+impl Amplitude {
     ///
-    /// Creates new vector of amplitude
-    /// 
-    fn new() -> Self{
-        Self{
-            value,
-            array,
+    /// Creates `Amplitude` with
+    /// - `conf` - yaml value containing a configuration
+    ///
+    /// ```yaml
+    ///     # A:   ϕ, rad
+    ///      10.1: 0.0
+    ///      07.7: 0.0
+    ///     120.0: 0.0
+    /// ```
+    pub fn new(params: Vec<(f64, f64)>) -> Self {
+        Self {
+            params,
         }
     }
-    fn calc(&mut self, arrayA: Vec<i16>, arrayK: Vec<i16>, angle: f64) -> f64{
-        self.value = 0.0;
-        for i in 0..self.array.len() {
-            if (i< arrayK.len() && i < arrayA.len()){
-                self.value += arrayA[i] * (arrayK[i]*angle).sin();
-            }
-        }
-        self.value
+    ///
+    /// - Calculates new amplitude
+    /// - Returns calculated value
+    pub fn calc(&self, angle: f64) -> f64 {
+        log::debug!("angle: {}", angle);
+        self.params.iter().fold(0.0, |value, (amp, phi)| {
+            value + *amp * (angle + *phi).sin()
+        })
     }
+
 }
