@@ -102,7 +102,7 @@ mod amplitude {
         // ============== Configurations ============== //
         ////////////////////////////////////////////////// 
         let mut rng = rand::thread_rng();
-        let params = (0..params_count).fold(vec![], |mut params, i| {
+        let params = (0..params_count).fold(vec![], |mut params, _| {
             let amp = rng.gen_range(0.01..10.0);
             let phi = rng.gen_range(0.00..2.0 * PI);
             params.push((amp, phi));
