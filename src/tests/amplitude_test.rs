@@ -1,11 +1,11 @@
 #[cfg(test)]
-
+//сделать класс и формулы для комплексного числа
 mod amplitude {
     use std::{array, borrow::Borrow, f64::consts::PI, result, sync::Once, time::{Duration, Instant}};
     use testing::stuff::max_test_duration::TestDuration;
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
 
-    use crate::{amplitude::{self, Amplitude}, angle::Angle, stuff::approx_eq::AproxEq};
+    use crate::{amplitude::{self, Amplitude}, angle::Angle, stuff::approx_eq::AproxEq, complex::Complex};
     ///
     ///
     static INIT: Once = Once::new();
@@ -96,9 +96,8 @@ mod amplitude {
         let test_duration = TestDuration::new(self_id, Duration::from_secs(10));
         test_duration.run().unwrap();
         use rand::{Rng, thread_rng};
-        use num::complex::Complex;
 
-        let array_capacity = thread_rng().gen_range(1..=10);
+        let array_capacity = thread_rng().gen_range(1..=100);
         let mut array_a = vec![0.; array_capacity];
         let mut array_phi = vec![0.; array_capacity];
 
@@ -125,13 +124,11 @@ mod amplitude {
             else{
                 let re = thread_rng().gen_range(0.0..=100.0);
                 let im = thread_rng().gen_range(0.0..=100.0);
-                let complex = Complex::new(re, im);
-                log::debug!("complex number: {}", complex);
+                let mut complex = Complex::new(re, im);
+                log::debug!("complex number: {} + {}i", re, im);
                 rand_angle = complex.arg();
                 log::debug!("complex angle in rad: {}", rand_angle);
                 log::debug!("complex angle in grad: {}", rand_angle * 180./PI);
-                // let ampl = complex.norm();
-                // log::debug!("complex module: {}", ampl);
             }
             calc_amplitude  = cycle_formula(rand_angle, &array_a, &array_phi);
 

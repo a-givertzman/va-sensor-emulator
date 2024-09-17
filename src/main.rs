@@ -2,6 +2,7 @@ mod buffer;
 mod angle;
 mod amplitude;
 mod stuff;
+mod complex;
 
 #[cfg(test)]
 mod tests;

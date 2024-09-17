@@ -7,7 +7,6 @@ edition = "2021"
 log = "^0.4"
 env_logger = "^0.11"
 rand = "0.9.0-alpha.1"
-num = "0.4"
 
 testing = { git = "https://github.com/a-givertzman/rust-testing.git" }
 # testing = { git = "https://github.com/a-givertzman/rust-testing.git", tag = "0.1.2" }
