@@ -3,6 +3,7 @@ mod angle;
 mod amplitude;
 mod stuff;
 mod complex;
+mod service;
 
 #[cfg(test)]
 mod tests;
