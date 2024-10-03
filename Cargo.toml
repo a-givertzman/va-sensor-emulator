@@ -17,4 +17,7 @@ debugging = { git = "https://github.com/a-givertzman/rust-debuging.git", tag = "
 sal-sync = { git = "https://github.com/a-givertzman/rust-sal-sync.git" }
 #
 # collections
-indexmap = "2.6.0"
+indexmap = "^2.6"
+#
+# regex
+regex = "^1.11"

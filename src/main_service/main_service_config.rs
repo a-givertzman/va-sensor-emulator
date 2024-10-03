@@ -20,7 +20,6 @@ pub struct MainServiceConf {
     pub cycle: Option<Duration>,
     pub buf_size: i64,
     pub signal: Vec<(f64, f64, f64)>,
-    pub vars: Vec<String>,
 }
 //
 // 
@@ -32,7 +31,6 @@ impl MainServiceConf {
         trace!("MainServiceConf.new | conf: {:?}", conf);
         let mut vars = vec![];
         let self_id = format!("MainServiceConf({})", conf_tree.key);
-        let mut self_conf = ServiceConfig::new(&self_id, conf_tree.clone());
         trace!("{}.new | selfConf: {:?}", self_id, self_conf);
         let self_name = Name::new(parent, self_conf.sufix());
         debug!("{}.new | name: {:?}", self_id, self_name);
