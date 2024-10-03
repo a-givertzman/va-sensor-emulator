@@ -1,10 +1,7 @@
-#![allow(non_snake_case)]
-
 use std::str::FromStr;
 use log::{trace, warn};
 use regex::RegexBuilder;
 use serde::Deserialize;
-
 ///
 /// 
 #[derive(Debug, Deserialize, PartialEq, Eq, Hash, Clone)]
@@ -117,17 +114,17 @@ impl FromStr for ConfKeywd {
         // let re = r#"(?:(?:(\w+)|))(?:(?:\s|)(task|service|queue|link){1}(?:$|(?:[ \t]['"]*(\S+)['"]*)))"#;
         let re = r#"(?:(?:(\w+)[ \t])?(task|service|queue|link){1}(?:$|(?:[ \t](\S+)(?:[ \t](\S+))?)))"#;
         let re = RegexBuilder::new(re).multi_line(false).build().unwrap();
-        let groupPrefix = 1;
-        let groupKind = 2;
-        let groupName = 3;
-        let groupSufix = 4;
+        let group_prefix = 1;
+        let group_kind = 2;
+        let group_name = 3;
+        let group_sufix = 4;
         match re.captures(input) {
             Some(caps) => {
-                let prefix = match &caps.get(groupPrefix) {
+                let prefix = match &caps.get(group_prefix) {
                     Some(first) => String::from(first.as_str()),
                     None => String::new(),
                 };
-                let kind = match &caps.get(groupKind) {
+                let kind = match &caps.get(group_kind) {
                     Some(kind) => {
                         match ConfKind::from_str(&kind.as_str().to_lowercase()) {
                             Ok(kinde) => kinde,
@@ -139,7 +136,7 @@ impl FromStr for ConfKeywd {
                     }
                     None => ConfKind::Unknown,
                 };
-                let name = match &caps.get(groupName) {
+                let name = match &caps.get(group_name) {
                     Some(arg) => {
                         Ok(arg.as_str().to_string())
                     }
@@ -151,13 +148,13 @@ impl FromStr for ConfKeywd {
                         }
                     }
                 };
-                let sufix = match &caps.get(groupSufix) {
+                let sufix = match &caps.get(group_sufix) {
                     Some(first) => String::from(first.as_str()),
                     None => String::new(),
                 };
                 match &name {
                     Ok(name) => {
-                        match &caps.get(groupKind) {
+                        match &caps.get(group_kind) {
                             Some(keyword) => {
                                 match keyword.as_str() {
                                     "task"      => Ok( ConfKeywd::Task( ConfKeywdValue { prefix, kind, name: name.to_string(), sufix } )),

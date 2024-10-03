@@ -1,7 +1,9 @@
-use indexmap::IndexMap;
-use log::{trace, debug};
-use sal_sync::services::{conf::conf_tree::ConfTree, entity::{name::Name, point::point_config::PointConfig}, subscription::conf_subscribe::ConfSubscribe};
+use regex::RegexBuilder;
 use std::{fs, time::Duration};
+use sal_sync::services::{
+    conf::conf_tree::ConfTree, entity::name::Name,
+};
+use crate::service::service_config::ServiceConfig;
 ///
 /// creates config from serde_yaml::Value of following format:
 /// ```yaml
@@ -18,7 +20,7 @@ use std::{fs, time::Duration};
 pub struct MainServiceConf {
     pub name: Name,
     pub cycle: Option<Duration>,
-    pub buf_size: i64,
+    pub buf_size: u64,
     pub signal: Vec<(f64, f64, f64)>,
 }
 //
@@ -26,40 +28,64 @@ pub struct MainServiceConf {
 impl MainServiceConf {
     ///
     /// - 
-    pub fn new(parent: impl Into<String>, conf: serde_yaml::Value) -> MainServiceConf {
-        println!();
-        trace!("MainServiceConf.new | conf: {:?}", conf);
-        let mut vars = vec![];
-        let self_id = format!("MainServiceConf({})", conf_tree.key);
-        trace!("{}.new | selfConf: {:?}", self_id, self_conf);
+    pub fn new(parent: impl Into<String>, conf_tree: &mut ConfTree) -> MainServiceConf {
+        log::trace!("TaskConfig.new | confTree: {:?}", conf_tree);
+        let dbg_id = format!("MainServiceConf({})", conf_tree.key);
+        let mut self_conf = ServiceConfig::new(&dbg_id, conf_tree.clone());
+        log::trace!("{}.new | selfConf: {:?}", dbg_id, self_conf);
         let self_name = Name::new(parent, self_conf.sufix());
-        debug!("{}.new | name: {:?}", self_id, self_name);
+        log::debug!("{}.new | name: {:?}", dbg_id, self_name);
         let cycle = self_conf.get_duration("cycle");
-        debug!("{}.new | cycle: {:?}", self_id, cycle);
-        let (rx, rx_max_length) = self_conf.get_in_queue().unwrap();
-        debug!("{}.new | RX: {},\tmax-length: {:?}", self_id, rx, rx_max_length);
-        let subscribe = ConfSubscribe::new(self_conf.get_param_value("subscribe").unwrap_or(serde_yaml::Value::Null));
-        debug!("{}.new | sudscribe: {:#?}", self_id, subscribe);
-        let mut node_index = 0;
-        let mut nodes = IndexMap::new();
-        for key in &self_conf.keys {
-            let node_conf = self_conf.get(key).unwrap();
-            trace!("{}.new | nodeConf: {:?}", self_id, node_conf);
-            node_index += 1;
-            let node_conf = FnConfig::new(&self_name.join(), &self_name, &node_conf, &mut vars);
-            nodes.insert(
-                format!("{}-{}", node_conf.name(), node_index),
-                node_conf,
-            );
+        log::debug!("{}.new | cycle: {:?}", dbg_id, cycle);
+        let buf_size = self_conf.get_param_value("buf-size").unwrap().as_u64().unwrap();
+        log::debug!("{}.new | buf_size: {:?}", dbg_id, buf_size);
+        let signal_conf = self_conf.get_param_value("signal").unwrap();
+        let signal_conf = signal_conf.as_mapping().unwrap();
+        log::debug!("{}.new | buf_size: {:?}", dbg_id, buf_size);
+        let mut signal_index = 0;
+        let mut signal = vec![];
+        for (freq, amp_phi) in signal_conf.iter() {
+            let freq = freq.as_f64().unwrap();
+            let (amp, phi) = Self::amp_phi_from_str(&dbg_id, amp_phi);
+            log::trace!("{}.new | signal[{}]: \tfreq: {:?}, \tamp:  {}, \tphase: {} rad", dbg_id, signal_index, freq, amp, phi);
+            signal_index += 1;
+            signal.push((
+                freq,
+                amp,
+                phi
+            ));
         }
         MainServiceConf {
             name: self_name,
             cycle,
-            rx,
-            rx_max_length,
-            subscribe,
-            nodes,
-            vars,
+            buf_size,
+            signal,
+        }
+    }
+    ///
+    /// 
+    fn amp_phi_from_str(dbg_id: &str, input: &serde_yaml::Value) -> (f64, f64) {
+        let re = r#"#^[ \t]*(\d+(?:\.\d+)*)(?:[ \t]+(\d+(?:\.\d+)*))*#gm"#;
+        let re = RegexBuilder::new(re).multi_line(false).build().unwrap();
+        let group_amp = 1;
+        let group_phi = 2;
+        match re.captures(input.as_str().unwrap()) {
+            Some(caps) => {
+                match &caps.get(group_amp) {
+                    Some(first) => {
+                        let amp:f64 = first.as_str().parse().unwrap();
+                        match &caps.get(group_phi) {
+                            Some(first) => {
+                                let phi:f64 = first.as_str().parse().unwrap();
+                                (amp, phi)
+                            }
+                            None => (amp, 0.0),
+                        }
+                    }
+                    None => panic!("{}.amp_phi_from_str | Amplitude parsing error in {:?}", dbg_id, input),
+                }
+            }
+            None => panic!("{}.amp_phi_from_str | Amplitude and Phase parsing error in {:?}", dbg_id, input),
         }
     }
     ///
@@ -93,13 +119,5 @@ impl MainServiceConf {
                 panic!("MainServiceConf.read | File {} reading error: {:?}", path, err)
             }
         }
-    }
-    ///
-    /// Returns list of configurations of the defined points
-    pub fn points(&self) -> Vec<PointConfig> {
-        self.nodes.iter().fold(vec![], |mut points, (_node_name,node_conf)| {
-            points.extend(node_conf.points());
-            points
-        })
     }
 }
