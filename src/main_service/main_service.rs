@@ -1,22 +1,14 @@
 use std::{sync::{Arc, Mutex, atomic::{AtomicBool, Ordering}, mpsc::Sender}, thread};
 use log::{info, warn};
-use crate::{
-    services::entity::{
+use sal_sync::services::entity::{
         object::Object, point::point::Point, name::Name,
-    }, 
-    conf::ServiceNameConfig,
-    services::{
-        services::Services,
-        service::service::Service,
-        service::service_handles::ServiceHandles, 
-    }, 
+        services::{
+            services::Services,
+            service::service::Service,
+            service::service_handles::ServiceHandles, 
+        }, 
 };
-//
-//
-pub struct ServiceConfig{
-    ampl: f64,
-    phi: f64,
-}
+crate::main_service::main_service_config::MainServiceConf;
 //
 //
 impl ServiceConfig{
@@ -33,16 +25,16 @@ impl ServiceConfig{
 }
 //
 //
-pub struct ServiceName{
+pub struct MainService{
     id: String,
     name: Name,
     conf: ServiceNameConfig,
     services: Arc<Mutex<Services>>,
     exit: Arc<AtomicBool>,
 }
-impl ServiceName {
+impl MainService {
     //
-    /// Crteates new instance of the ServiceName 
+    /// Crteates new instance of the MainService 
     pub fn new(parent: impl Into<String>, conf: ServiceNameConfig, services: Arc<Mutex<Services>>) -> Self {
         Self {
             id: conf.name.join(),
@@ -53,7 +45,7 @@ impl ServiceName {
         }
     }
 }
-impl Object for ServiceName {
+impl Object for MainService {
     fn id(&self) -> &str {
         &self.id
     }
@@ -64,17 +56,17 @@ impl Object for ServiceName {
 }
 //
 // 
-impl std::fmt::Debug for ServiceName {
+impl std::fmt::Debug for MainService {
     fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         formatter
-            .debug_struct("ServiceName")
+            .debug_struct("MainService")
             .field("id", &self.id)
             .finish()
     }
 }
 //
 // 
-impl Service for ServiceName {
+impl Service for MainService {
     //
     // 
     fn get_link(&mut self, name: &str) -> Sender<Point> {
