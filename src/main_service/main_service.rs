@@ -1,46 +1,45 @@
 use std::{sync::{Arc, Mutex, atomic::{AtomicBool, Ordering}, mpsc::Sender}, thread};
 use log::{info, warn};
-use sal_sync::services::entity::{
-        object::Object, point::point::Point, name::Name,
-        services::{
-            services::Services,
-            service::service::Service,
-            service::service_handles::ServiceHandles, 
-        }, 
-};
-crate::main_service::main_service_config::MainServiceConf;
+use sal_sync::services::{entity::{
+        name::Name, object::Object, point::point::Point
+        // services::{
+        //     services::Services,
+        //     service::service::Service,
+        //     service::service_handles::ServiceHandles, 
+        // }, 
+}, service::{service::Service, service_handles::ServiceHandles}};
+
+use super::main_service_config::MainServiceConf;
 //
 //
-impl ServiceConfig{
-    //
-    ///
-    pub fn new(conf: &serde_yaml::Value) -> Self{
-        let ampl = conf["ample"].as_i64().unwrap_or(0.0) as f64;
-        let phi = conf["phi"].as_i64().unwrap_or(0.0) as f64;
-        Self{
-            ampl,
-            phi,
-        }
-    }
-}
+// impl ServiceConfig{
+//     //
+//     ///
+//     pub fn new(conf: &serde_yaml::Value) -> Self{
+//         let ampl = conf["ample"].as_i64().unwrap_or(0.0) as f64;
+//         let phi = conf["phi"].as_i64().unwrap_or(0.0) as f64;
+//         Self{
+//             ampl,
+//             phi,
+//         }
+//     }
+// }
 //
 //
 pub struct MainService{
     id: String,
     name: Name,
-    conf: ServiceNameConfig,
-    services: Arc<Mutex<Services>>,
+    conf: MainServiceConf,
     exit: Arc<AtomicBool>,
 }
 impl MainService {
     //
     /// Crteates new instance of the MainService 
-    pub fn new(parent: impl Into<String>, conf: ServiceNameConfig, services: Arc<Mutex<Services>>) -> Self {
+    pub fn new(parent: impl Into<String>, conf: MainServiceConf) -> Self {
         Self {
             id: conf.name.join(),
-            name: conf.name,
+            name: conf.name.clone(),
             conf: conf.clone(),
-            services,
             exit: Arc::new(AtomicBool::new(false)),
         }
     }
@@ -78,7 +77,7 @@ impl Service for MainService {
     }
     //
     //
-    fn run(&mut self) -> Result<ServiceHandles, String> {
+    fn run(&mut self) -> Result<ServiceHandles<()>, String> {
         info!("{}.run | Starting...", self.id);
         let self_id = self.id.clone();
         let exit = self.exit.clone();
