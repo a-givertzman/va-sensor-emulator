@@ -20,6 +20,7 @@ use crate::service::service_config::ServiceConfig;
 #[derive(Debug, PartialEq, Clone)]
 pub struct MainServiceConf {
     pub name: Name,
+    pub addr: String,
     pub sampl_freq: Option<Duration>,
     pub buf_size: u64,
     pub signal: Vec<(f64, f64, f64)>,
