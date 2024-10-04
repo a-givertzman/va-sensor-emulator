@@ -8,18 +8,19 @@ use crate::service::service_config::ServiceConfig;
 /// creates config from serde_yaml::Value of following format:
 /// ```yaml
 /// service MainService MainService-1:
-///     cycle: 100 ms
+///     address: 172.0.0.1:8
+///     sampl-freq: 100 ms
 ///     buf-size: 512
 ///     signal:
 ///         # freq: amplitude, [phase]
 ///         #  Hz     R.U.      rad
-///         - 100:  100.11
-///         - 220:  220.22
-/// 
+///         100:     100.11
+///         220:     220.22     3.14
+/// ```
 #[derive(Debug, PartialEq, Clone)]
 pub struct MainServiceConf {
     pub name: Name,
-    pub cycle: Option<Duration>,
+    pub sampl_freq: Option<Duration>,
     pub buf_size: u64,
     pub signal: Vec<(f64, f64, f64)>,
 }
@@ -35,8 +36,8 @@ impl MainServiceConf {
         log::trace!("{}.new | selfConf: {:?}", dbg_id, self_conf);
         let self_name = Name::new(parent, self_conf.sufix());
         log::debug!("{}.new | name: {:?}", dbg_id, self_name);
-        let cycle = self_conf.get_duration("cycle");
-        log::debug!("{}.new | cycle: {:?}", dbg_id, cycle);
+        let sampl_freq = self_conf.get_duration("sampl-freq");
+        log::debug!("{}.new | cycle: {:?}", dbg_id, sampl_freq);
         let buf_size = self_conf.get_param_value("buf-size").unwrap().as_u64().unwrap();
         log::debug!("{}.new | buf_size: {:?}", dbg_id, buf_size);
         let signal_conf = self_conf.get_param_value("signal").unwrap();
@@ -57,7 +58,7 @@ impl MainServiceConf {
         }
         MainServiceConf {
             name: self_name,
-            cycle,
+            sampl_freq,
             buf_size,
             signal,
         }
@@ -73,7 +74,7 @@ impl MainServiceConf {
             Some(caps) => {
                 match &caps.get(group_amp) {
                     Some(first) => {
-                        let amp:f64 = first.as_str().parse().unwrap();
+                        let amp: f64 = first.as_str().parse().unwrap();
                         match &caps.get(group_phi) {
                             Some(first) => {
                                 let phi:f64 = first.as_str().parse().unwrap();

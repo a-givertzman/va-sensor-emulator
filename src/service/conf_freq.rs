@@ -4,14 +4,13 @@ use regex::RegexBuilder;
 use serde::Deserialize;
 ///
 /// Unit of Duration
-/// - ns - nanoseconds, 
-/// - us - microseconds, 
-/// - ms - milliseconds, 
-/// - s - seconds, 
-/// - m - minutes, 
-/// - h - hours
+/// -  Hz - Hertz, 
+/// - kHz - Kilo Hertz, 
+/// - MHz - Mega Hertz, 
+/// - GHz - Mega Hertz, 
+/// - THz - Mega Hertz, 
 #[derive(Debug, Deserialize, PartialEq, Clone)]
-pub enum ConfDurationUnit {
+pub enum ConfFreqUnit {
     Nanos,
     Micros,
     Millis,
@@ -21,7 +20,7 @@ pub enum ConfDurationUnit {
 }
 //
 // 
-impl FromStr for ConfDurationUnit {
+impl FromStr for ConfFreqUnit {
     type Err = String;
     fn from_str(input: &str) -> Result<Self, Self::Err> {
         match input {
@@ -31,7 +30,7 @@ impl FromStr for ConfDurationUnit {
             "s" => Ok(Self::Secs),
             "m" => Ok(Self::Mins),
             "h" => Ok(Self::Hours),
-            _ => Err(format!("ConfDurationUnit.from_str | Unknown duration unit: '{}'", input))
+            _ => Err(format!("ConfFreqUnit.from_str | Unknown duration unit: '{}'", input))
         }
     }
 }
@@ -55,14 +54,14 @@ impl FromStr for ConfDurationUnit {
 #[derive(Debug, Deserialize, PartialEq)]
 pub struct ConfDuration {
     pub value: u64,
-    pub unit: ConfDurationUnit,
+    pub unit: ConfFreqUnit,
 }
 //
 // 
 impl ConfDuration {
     ///
     /// New instance if ConfDuration
-    pub fn new(value: u64, unit: ConfDurationUnit) -> Self {
+    pub fn new(value: u64, unit: ConfFreqUnit) -> Self {
         Self {
             value,
             unit,
@@ -70,14 +69,14 @@ impl ConfDuration {
     }
     ///
     /// 
-    pub fn to_duration(&self) -> Duration {
+    pub fn toDuration(&self) -> Duration {
         match self.unit {
-            ConfDurationUnit::Nanos => Duration::from_nanos(self.value),
-            ConfDurationUnit::Micros => Duration::from_micros(self.value),
-            ConfDurationUnit::Millis => Duration::from_millis(self.value),
-            ConfDurationUnit::Secs => Duration::from_secs(self.value),
-            ConfDurationUnit::Mins => Duration::from_secs(self.value),
-            ConfDurationUnit::Hours => Duration::from_secs(self.value),
+            ConfFreqUnit::Nanos => Duration::from_nanos(self.value),
+            ConfFreqUnit::Micros => Duration::from_micros(self.value),
+            ConfFreqUnit::Millis => Duration::from_millis(self.value),
+            ConfFreqUnit::Secs => Duration::from_secs(self.value),
+            ConfFreqUnit::Mins => Duration::from_secs(self.value),
+            ConfFreqUnit::Hours => Duration::from_secs(self.value),
         }
     }
 }
@@ -89,20 +88,20 @@ impl FromStr for ConfDuration {
         trace!("ConfDuration.from_str | input: {}", input);
         let re = r#"^[ \t]*(\d+)[ \t]*(ns|us|ms|s|m|h){0,1}[ \t]*$"#;
         let re = RegexBuilder::new(re).multi_line(true).build().unwrap();
-        let group_value = 1;
-        let group_unit = 2;
+        let groupValue = 1;
+        let groupUnit = 2;
         match re.captures(input) {
             Some(caps) => {
-                match &caps.get(group_value) {
+                match &caps.get(groupValue) {
                     Some(first) => {
                         match first.as_str().parse() {
                             Ok(value) => {
-                                let unit = match &caps.get(group_unit) {
-                                    Some(u) => match ConfDurationUnit::from_str(u.as_str()) {
+                                let unit = match &caps.get(groupUnit) {
+                                    Some(u) => match ConfFreqUnit::from_str(u.as_str()) {
                                         Ok(unit) => Ok(unit),
                                         Err(err) => Err(err),
                                     }
-                                    None => Ok(ConfDurationUnit::Secs),
+                                    None => Ok(ConfFreqUnit::Secs),
                                 };
                                 match unit {
                                     Ok(unit) => Ok(ConfDuration::new(value, unit)),
