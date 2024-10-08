@@ -1,4 +1,5 @@
-use std::{net::{TcpStream, UdpSocket}, sync::{atomic::{AtomicBool, Ordering}, mpsc::Sender, Arc, Mutex}, thread, time::Duration};
+use core::panicking::panic;
+use std::{io::Error, net::{TcpStream, ToSocketAddrs, UdpSocket}, os::unix::net::SocketAddr, sync::{atomic::{AtomicBool, Ordering}, mpsc::Sender, Arc, Mutex}, thread, time::Duration};
 use log::{info, warn};
 use sal_sync::services::{entity::{
         name::Name, object::Object, point::point::Point
@@ -7,7 +8,7 @@ use sal_sync::services::{entity::{
         //     service::service::Service,
         //     service::service_handles::ServiceHandles, 
         // }, 
-}, service::{service::Service, service_cycle::ServiceCycle, service_handles::ServiceHandles}};
+}, service::{service::Service, service_cycle::ServiceCycle, service_handles::ServiceHandles}, types::type_of::TypeOf};
 
 use super::main_service_config::MainServiceConf;
 //
@@ -34,7 +35,7 @@ pub struct MainService{
 }
 impl MainService {
     //
-    /// Crteates new instance of the MainService 
+    /// Creates new instance of the MainService 
     pub fn new(parent: impl Into<String>, conf: MainServiceConf) -> Self {
         Self {
             dbg_id: conf.name.join(),
@@ -45,9 +46,16 @@ impl MainService {
     }
     ///
     /// Bind the UDP socket
-    fn udp_bind(addr: impl AsRef<UdpAdr>) -> Result<UdpSocket> {
+    fn udp_bind(addr: impl ToSocketAddrs + std::fmt::Debug) -> Result<UdpSocket, Error> {
         // UDP Bind 
+        let socket = UdpSocket::bind(&addr).map_err(|e| {
+            Error::new(std::io::ErrorKind::Other, format!("Failed to bind because of{}", e))
+        });
+        println!("Connecting to the {:#?}", addr);  //assert_eq or log or panic or err
+        socket
+        //Ok(socket)
     }
+
 }
 //
 //
@@ -93,9 +101,15 @@ impl Service for MainService {
             let interval = 0.0; // from sampl_freq & buf_size
             let interval = Duration::from_secs_f64(interval);
             let mut cycle = ServiceCycle::new(&dbg_id, interval);
+            let addr = "127.0.0.1:15181"; //other address in string format
+            let buf:[u8; 0] = []; //which type is going to be here?
+            ///
+            /// Take from other files
             let amplitude = todo!();
             let angle = todo!();
             let buffer = todo!();
+            ///
+            /// 
             let header = todo!("Udp message head, find detales here: https://github.com/a-givertzman/cma-server/issues/123#issue-2478437558");
             loop {
                 match Self::udp_bind(addr) {
