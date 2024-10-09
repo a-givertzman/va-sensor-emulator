@@ -37,6 +37,8 @@ impl MainServiceConf {
         log::trace!("{}.new | selfConf: {:?}", dbg_id, self_conf);
         let self_name = Name::new(parent, self_conf.sufix());
         log::debug!("{}.new | name: {:?}", dbg_id, self_name);
+        let addr = serde_yaml::to_string(&self_conf.get_param_value("address").unwrap()).unwrap();
+        log::debug!("{}.new | address: {:?}", dbg_id, addr);
         let sampl_freq = self_conf.get_duration("sampl-freq");
         log::debug!("{}.new | cycle: {:?}", dbg_id, sampl_freq);
         let buf_size = self_conf.get_param_value("buf-size").unwrap().as_u64().unwrap();
@@ -59,6 +61,7 @@ impl MainServiceConf {
         }
         MainServiceConf {
             name: self_name,
+            addr,
             sampl_freq,
             buf_size,
             signal,
