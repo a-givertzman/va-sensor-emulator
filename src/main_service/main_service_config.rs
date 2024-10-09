@@ -8,7 +8,7 @@ use crate::service::service_config::ServiceConfig;
 /// creates config from serde_yaml::Value of following format:
 /// ```yaml
 /// service MainService MainService-1:
-///     address: 172.0.0.1:15181
+///     address: 127.0.0.1:15181
 ///     sampl-freq: 100 ms
 ///     buf-size: 512
 ///     signal:
