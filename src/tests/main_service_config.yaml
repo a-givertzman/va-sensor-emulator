@@ -1,0 +1,9 @@
+service MainService MainService-1:
+    address: 127.0.0.1:15181
+    sampl-freq: 100 ms
+    buf-size: 512
+    signal:
+        # freq: amplitude, [phase]
+        #  Hz     R.U.      rad
+        100:     100.11
+        220:     220.22     3.14
