@@ -43,6 +43,9 @@ mod main_service_config {
                         #  Hz     R.U.      rad
                         100:     100.11     
                         220:     220.22     3.14
+                        230:     230     3.14
+                        231:     231     3
+                        240:     240
                 "#).unwrap(),
                 MainServiceConf {
                     name: dbg_id.into(),
@@ -51,7 +54,10 @@ mod main_service_config {
                     buf_size: 512,
                     signal: vec![
                         (100., 100.11, 0.0),
-                        (220., 220.22, 3.14)
+                        (220., 220.22, 3.14),
+                        (230., 230.00, 3.14),
+                        (231., 231.00, 3.00),
+                        (240., 240.00, 0.00),
                     ],
                 }
             ),
@@ -65,15 +71,22 @@ mod main_service_config {
                         #  Hz     R.U.      rad
                         100:     100.11     
                         220:     220.22     3.14
+                        230:     230     3.14
+                        231:     231     3
+                        240:     240
                 "#).unwrap(),
                 MainServiceConf {
-                    name: dbg_id.into(),
+                    // name: dbg_id.into(),
+                    name: Name::new(dbg_id, "MainService-1"),
                     addr: "127.0.0.1:15181".to_owned(),
                     sampl_freq: Some(Duration::from_millis(100)),
                     buf_size: 512,
                     signal: vec![
                         (100., 100.11, 0.0),
-                        (220., 220.22, 3.14)
+                        (220., 220.22, 3.14),
+                        (230., 230.00, 3.14),
+                        (231., 231.00, 3.00),
+                        (240., 240.00, 0.00),
                     ],
                 }
             ),
