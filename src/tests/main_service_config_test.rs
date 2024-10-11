@@ -4,16 +4,7 @@ mod main_service_config {
     use std::{sync::Once, time::{Duration, Instant}};
     use testing::stuff::max_test_duration::TestDuration;
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
-
     use crate::main_service::main_service_config::MainServiceConf;
-    // Определяем ComparisonConf
-     #[derive(Debug, PartialEq)]
-     struct ComparisonConf {
-        pub addr: String,
-        pub sampl_freq: Option<Duration>,
-        pub buf_size: u64,
-        pub signal: Vec<(f64, f64, f64)>,
-     }
     ///
     ///
     static INIT: Once = Once::new();
