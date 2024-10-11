@@ -72,7 +72,7 @@ impl MainServiceConf {
     ///
     /// 
     fn amp_phi_from_str(dbg_id: &str, input: &serde_yaml::Value) -> (f64, f64) {
-        let re = r"^\s*(\d+\.*\d+*)\s+(\d+\.*\d+*)?";
+        let re = r#"^[ \t]*(\d+(?:\.\d+)*)(?:[ \t]+(\d+(?:\.\d+)*))*"#;
         let re = RegexBuilder::new(re).multi_line(false).build().unwrap();
         let group_amp = 1;
         let group_phi = 2;

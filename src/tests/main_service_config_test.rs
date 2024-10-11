@@ -66,25 +66,24 @@ mod main_service_config {
             ),
         ];
         let mut step = 0;
-        for (conf, target) in test_data {
+        for (step, (conf, target)) in test_data.into_iter().enumerate() {
             let result = MainServiceConf::from_yaml(dbg_id, &conf);
             log::debug!("result: {:?}, target: {:?}", result, target);
             //временная структура для сравнения
-            let result_comp = ComparisonConf {
-                addr: result.addr.trim_end().to_string(),
-                sampl_freq: result.sampl_freq,
-                buf_size: result.buf_size,
-                signal: result.signal,
-            };
+            // let result_comp = ComparisonConf {
+            //     addr: result.addr.trim_end().to_string(),
+            //     sampl_freq: result.sampl_freq,
+            //     buf_size: result.buf_size,
+            //     signal: result.signal,
+            // };
             
-            let target_comp = ComparisonConf {
-                addr: target.addr,
-                sampl_freq: target.sampl_freq,
-                buf_size: target.buf_size,
-                signal: target.signal,
-            };
-            step +=1;
-            assert!(result_comp == target_comp, "step {} \nresult: {:?}\ntarget: {:?}", step, result_comp, target_comp);
+            // let target_comp = ComparisonConf {
+            //     addr: target.addr,
+            //     sampl_freq: target.sampl_freq,
+            //     buf_size: target.buf_size,
+            //     signal: target.signal,
+            // };
+            assert!(result == target, "step {} \nresult: {:?}\ntarget: {:?}", step, result, target);
         }
         test_duration.exit();
     }
