@@ -39,7 +39,7 @@ impl MainServiceConf {
         log::trace!("{}.new | selfConf: {:?}", dbg_id, self_conf);
         let self_name = Name::new(parent, self_conf.sufix());
         log::debug!("{}.new | name: {:?}", dbg_id, self_name);
-        let addr = serde_yaml::to_string(&self_conf.get_param_value("address").unwrap()).unwrap();
+        let addr = self_conf.get_param_value("address").unwrap().as_str().unwrap().to_owned();
         log::debug!("{}.new | address: {:?}", dbg_id, addr);
         let sampl_freq = self_conf.get_duration("sampl-freq");
         log::debug!("{}.new | cycle: {:?}", dbg_id, sampl_freq);
