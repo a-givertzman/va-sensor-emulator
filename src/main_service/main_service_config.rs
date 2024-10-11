@@ -76,8 +76,12 @@ impl MainServiceConf {
         let re = RegexBuilder::new(re).multi_line(false).build().unwrap();
         let group_amp = 1;
         let group_phi = 2;
-        
-        match re.captures(&to_string(input).unwrap()) {
+        let input = match input {
+            serde_yaml::Value::Number(val) => val.to_string(),
+            serde_yaml::Value::String(val) => val.to_owned(),
+            _ => panic!("{}.amp_phi_from_str | Amplitude parsing error in {:?}", dbg_id, input),
+        };
+        match re.captures(&input) {
             Some(caps) => {
                 match &caps.get(group_amp) {
                     Some(first) => {
