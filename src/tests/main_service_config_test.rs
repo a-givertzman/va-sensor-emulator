@@ -2,6 +2,7 @@
 
 mod main_service_config {
     use std::{sync::Once, time::{Duration, Instant}};
+    use sal_sync::services::entity::name::Name;
     use testing::stuff::max_test_duration::TestDuration;
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
     use crate::main_service::main_service_config::MainServiceConf;
