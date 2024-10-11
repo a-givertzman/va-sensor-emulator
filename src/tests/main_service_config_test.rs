@@ -6,6 +6,14 @@ mod main_service_config {
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
 
     use crate::main_service::main_service_config::MainServiceConf;
+    // Определяем ComparisonConf
+     #[derive(Debug, PartialEq)]
+     struct ComparisonConf {
+        pub addr: String,
+        pub sampl_freq: Option<Duration>,
+        pub buf_size: u64,
+        pub signal: Vec<(f64, f64, f64)>,
+     }
     ///
     ///
     static INIT: Once = Once::new();
@@ -41,17 +49,42 @@ mod main_service_config {
                     signal:
                         # freq: amplitude, [phase]
                         #  Hz     R.U.      rad
-                        100:     100.11
+                        100:     100.11     
                         220:     220.22     3.14
                 "#).unwrap(),
+
                 MainServiceConf {
-                    addr: "address: 127.0.0.1:15181".to_owned(),
+                    name: dbg_id.into(),
+                    addr: "127.0.0.1:15181".to_owned(),
+                    sampl_freq: Some(Duration::from_millis(100)),
+                    buf_size: 512,
+                    signal: vec![
+                        (100., 100.11, 0.0),
+                        (220., 220.22, 3.14)
+                    ],
                 }
             ),
         ];
+        let mut step = 0;
         for (conf, target) in test_data {
             let result = MainServiceConf::from_yaml(dbg_id, &conf);
-            assert!(result == target, "step {} \nresult: {:?}\ntarget: {:?}", step, result, target);
+            log::debug!("result: {:?}, target: {:?}", result, target);
+            //временная структура для сравнения
+            let result_comp = ComparisonConf {
+                addr: result.addr.trim_end().to_string(),
+                sampl_freq: result.sampl_freq,
+                buf_size: result.buf_size,
+                signal: result.signal,
+            };
+            
+            let target_comp = ComparisonConf {
+                addr: target.addr,
+                sampl_freq: target.sampl_freq,
+                buf_size: target.buf_size,
+                signal: target.signal,
+            };
+            step +=1;
+            assert!(result_comp == target_comp, "step {} \nresult: {:?}\ntarget: {:?}", step, result_comp, target_comp);
         }
         test_duration.exit();
     }

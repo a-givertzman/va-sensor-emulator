@@ -1,4 +1,6 @@
+use log::info;
 use regex::RegexBuilder;
+use serde_yaml::to_string;
 use std::{fs, time::Duration};
 use sal_sync::services::{
     conf::conf_tree::ConfTree, entity::name::Name,
@@ -70,11 +72,12 @@ impl MainServiceConf {
     ///
     /// 
     fn amp_phi_from_str(dbg_id: &str, input: &serde_yaml::Value) -> (f64, f64) {
-        let re = r#"#^[ \t]*(\d+(?:\.\d+)*)(?:[ \t]+(\d+(?:\.\d+)*))*#gm"#;
+        let re = r"^\s*(\d+\.*\d+*)\s+(\d+\.*\d+*)?";
         let re = RegexBuilder::new(re).multi_line(false).build().unwrap();
         let group_amp = 1;
         let group_phi = 2;
-        match re.captures(input.as_str().unwrap()) {
+        
+        match re.captures(&to_string(input).unwrap()) {
             Some(caps) => {
                 match &caps.get(group_amp) {
                     Some(first) => {
