@@ -37,7 +37,10 @@ impl MainServiceConf {
         let dbg_id = format!("MainServiceConf({})", conf_tree.key);
         let mut self_conf = ServiceConfig::new(&dbg_id, conf_tree.clone());
         log::trace!("{}.new | selfConf: {:?}", dbg_id, self_conf);
-        let self_name = Name::new(parent, self_conf.sufix());
+        let self_name = match self_conf.sufix().is_empty() {
+            true => Name::new(parent, self_conf.name()),
+            false => Name::new(parent, self_conf.sufix()),
+        };
         log::debug!("{}.new | name: {:?}", dbg_id, self_name);
         let addr = self_conf.get_param_value("address").unwrap().as_str().unwrap().to_owned();
         log::debug!("{}.new | address: {:?}", dbg_id, addr);
@@ -76,6 +79,8 @@ impl MainServiceConf {
         let re = RegexBuilder::new(re).multi_line(false).build().unwrap();
         let group_amp = 1;
         let group_phi = 2;
+
+        //знак переноса строки был из-за некоректного конвертирования value в string
         let input = match input {
             serde_yaml::Value::Number(val) => val.to_string(),
             serde_yaml::Value::String(val) => val.to_owned(),

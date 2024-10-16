@@ -48,7 +48,7 @@ mod main_service_config {
                         240:     240
                 "#).unwrap(),
                 MainServiceConf {
-                    name: dbg_id.into(),
+                    name: Name::new(dbg_id, "MainService"),
                     addr: "127.0.0.1:15181".to_owned(),
                     sampl_freq: Some(Duration::from_millis(100)),
                     buf_size: 512,
@@ -76,7 +76,6 @@ mod main_service_config {
                         240:     240
                 "#).unwrap(),
                 MainServiceConf {
-                    // name: dbg_id.into(),
                     name: Name::new(dbg_id, "MainService-1"),
                     addr: "127.0.0.1:15181".to_owned(),
                     sampl_freq: Some(Duration::from_millis(100)),
@@ -93,6 +92,7 @@ mod main_service_config {
         ];
         for (step, (conf, target)) in test_data.into_iter().enumerate() {
             let result = MainServiceConf::from_yaml(dbg_id, &conf);
+            println!("step: {}, result: {:?}, target: {:?}\n", step, result, target);
             log::debug!("result: {:?}, target: {:?}", result, target);
             assert!(result == target, "step {} \nresult: {:?}\ntarget: {:?}", step, result, target);
         }
