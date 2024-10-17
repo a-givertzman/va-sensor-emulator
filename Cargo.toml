@@ -15,3 +15,14 @@ testing = { git = "https://github.com/a-givertzman/rust-testing.git" }
 # testing = { git = "https://github.com/a-givertzman/rust-testing.git", tag = "0.1.2" }
 debugging = { git = "https://github.com/a-givertzman/rust-debuging.git", tag = "0.0.1" }
 sal-sync = { git = "https://github.com/a-givertzman/rust-sal-sync.git" }
+#
+# collections
+hashers = "^1.0"
+indexmap = "^2.6"
+#
+# regex
+regex = "^1.11"
+#
+# strum - halps to work with enums
+strum = "^0.26"
+strum_macros = "^0.26"
