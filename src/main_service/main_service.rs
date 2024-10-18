@@ -1,6 +1,6 @@
 use std::{io::{Error, ErrorKind}, net::{TcpStream, ToSocketAddrs, UdpSocket}, os::unix::net::SocketAddr, sync::{atomic::{AtomicBool, Ordering}, mpsc::Sender, Arc, Mutex}, thread, time::Duration};
 use log::{info, warn};
-use sal_sync::services::{conf::conf_tree::ConfTree, entity::{
+use sal_sync::services::{conf::conf_tree::{self, ConfTree}, entity::{
         name::Name, object::Object, point::point::Point
         // services::{
         //     services::Services,
@@ -9,23 +9,7 @@ use sal_sync::services::{conf::conf_tree::ConfTree, entity::{
         // }, 
 }, service::{service::Service, service_cycle::ServiceCycle, service_handles::ServiceHandles}, types::type_of::TypeOf};
 
-use crate::amplitude;
-
 use super::main_service_config::MainServiceConf;
-//
-//
-// impl ServiceConfig{
-//     //
-//     ///
-//     pub fn new(conf: &serde_yaml::Value) -> Self{
-//         let ampl = conf["ample"].as_i64().unwrap_or(0.0) as f64;
-//         let phi = conf["phi"].as_i64().unwrap_or(0.0) as f64;
-//         Self{
-//             ampl,
-//             phi,
-//         }
-//     }
-// }
 //
 //
 pub struct UdpHeader {
@@ -33,7 +17,62 @@ pub struct UdpHeader {
     pub addr: u8,
     pub r#type: u8,
     pub count: u8,
-    pub data: [u8; 1024],
+}
+impl UdpHeader{
+    //
+    /// Creates a header for udp
+    pub fn new(syn: u8, addr: u8, r#type: u8, count:  u8) -> Self{
+        Self{
+            syn,
+            addr,
+            r#type,
+            count,
+        }
+    }
+    //
+    /// Convert fields of UdpHeader to Vector
+    pub fn header_to_bytes(&self) -> Vec<u8>{
+        let mut header_bytes = Vec::with_capacity(4);
+        header_bytes.push(self.syn);
+        header_bytes.push(self.addr);
+        header_bytes.push(self.r#type);
+        header_bytes.push(self.count);
+
+        header_bytes
+    }
+}
+//
+//
+pub struct UpdMessage{
+    pub header: UdpHeader,
+    pub data: Vec<u8>,
+}
+//
+//
+impl UpdMessage{
+    //
+    /// Creates a message for udp
+    pub fn new(header: UdpHeader, data: Vec<u8>) -> Self{
+        Self{
+            header,
+            data,
+        }
+    }
+    //
+    /// Convert fields of UdpMessage to Vector
+    pub fn message_to_bytes(&self) -> Vec<u8>{
+        let mut message_bytes = Vec::new();
+
+        for bytes in self.header.header_to_bytes(){
+            message_bytes.push(bytes);
+        }
+
+        for &bytes in &self.data{
+            message_bytes.push(bytes);
+        }
+
+        message_bytes
+    }
 }
 pub struct MainService{
     dbg_id: String,
@@ -106,44 +145,47 @@ impl Service for MainService {
     fn run(&mut self) -> Result<ServiceHandles<()>, String> {
         info!("{}.run | Starting...", self.dbg_id);
         let dbg_id = self.dbg_id.clone();
+        let conf_tree = self.conf.clone();
         let exit = self.exit.clone();
         info!("{}.run | Preparing thread...", dbg_id);
+
         let handle = thread::Builder::new().name(format!("{}.run", dbg_id.clone())).spawn(move || {
             let interval = 0.0; // from sampl_freq & buf_size
             let interval = Duration::from_secs_f64(interval);
             let mut cycle = ServiceCycle::new(&dbg_id, interval);
             let addr = "127.0.0.1:15181"; //other address in string format
 
-            let parent = "";
-            let conf_tree = ConfTree::new();
-            let config = MainService::new(parent, conf_tree);
-            for(freq, amp, phi) in config.signal{
-                let amplitude = amp;
-                let angle = phi;
-            }
-            let buf:[u8; 0] = [];
-            //let header = todo!("Udp message head, find detales here: https://github.com/a-givertzman/cma-server/issues/123#issue-2478437558");
+            let config = MainService::new(&dbg_id, conf_tree);
+            let mut buf = Vec::with_capacity(512);
+
             loop {
-                match Self::udp_bind(addr) {
-                    Ok(socket) => {
-                        cycle.start();
-                        // 
-                        // do the sampling actions
-                        // - calc amplitude
-                        // - add to buffer
-                        // - if buffer is full
-                        //      do the udp actions
-                        //      - build data splitting buffer amplitudes into bytes
-                        //      - build message using header and data
-                        //      - send message to the socket
-                        let bytes = buf.map(|amp: f64| {
-                            let amp: i16 = amp.round() as i16;
-                            let amp_bytes = amp.to_be_bytes();
-                        });
-                        socket.send(bytes);
-                        cycle.wait();
+
+                for (freq, amp, phi) in config.conf.signal.iter(){
+                    let amplitude = amp;
+                    buf.push(amplitude);
+
+                    if (buf.capacity() == buf.len()){
+
+                        match Self::udp_bind(addr){
+                            Ok(socket) => {
+                                cycle.start();
+                                let header = UdpHeader::new(0, 0, 32, 255);
+
+                                let bytes: &[u8] = unsafe {
+                                    std::slice::from_raw_parts(buf.as_ptr() as *const u8, buf.len() * 4)
+                                };
+
+                                let message = UpdMessage::new(header, bytes.to_vec());
+
+                                // &[u8]
+                                socket.send(&message.message_to_bytes()).expect("mmmm");
+
+                                buf.clear();
+                                cycle.wait();
+                            }
+                            Err(err) => log::error!("{}.run | Udp bind error: {}", dbg_id, err),
+                        }
                     }
-                    Err(err) => log::error!("{}.run | Udp bind error: {}", dbg_id, err),
                 }
                 if exit.load(Ordering::SeqCst) {
                     break;
