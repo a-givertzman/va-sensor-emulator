@@ -1,4 +1,4 @@
-use std::{io::{Error, ErrorKind}, net::{TcpStream, ToSocketAddrs, UdpSocket}, os::unix::net::SocketAddr, sync::{atomic::{AtomicBool, Ordering}, mpsc::Sender, Arc, Mutex}, thread, time::Duration};
+use std::{io::{Error}, net::{ToSocketAddrs, UdpSocket}, os::unix::net::SocketAddr, sync::{atomic::{AtomicBool, Ordering}, mpsc::Sender, Arc, Mutex}, thread, time::Duration};
 use log::{info, warn};
 use sal_sync::services::{conf::conf_tree::{self, ConfTree}, entity::{
         name::Name, object::Object, point::point::Point
@@ -8,16 +8,24 @@ use sal_sync::services::{conf::conf_tree::{self, ConfTree}, entity::{
         //     service::service_handles::ServiceHandles, 
         // }, 
 }, service::{service::Service, service_cycle::ServiceCycle, service_handles::ServiceHandles}, types::type_of::TypeOf};
+use serde::de::value;
 
 use super::main_service_config::MainServiceConf;
+use crate::Buffer;
 //
-//
+/// Struct `UpdHeader`
+/// - `syn` - message starts with
+/// - `addr` - address of the input channel
+/// - `type` - type of values in the array in data field in struct `UpdMessage`
+/// - `count` - length of the array in the data field in struct `UpdMessage`
 pub struct UdpHeader {
     pub syn: u8,
     pub addr: u8,
     pub r#type: u8,
     pub count: u8,
 }
+//
+//
 impl UdpHeader{
     //
     /// Creates a header for udp
@@ -31,18 +39,19 @@ impl UdpHeader{
     }
     //
     /// Convert fields of UdpHeader to Vector
-    pub fn header_to_bytes(&self) -> Vec<u8>{
+    pub fn to_bytes(&self) -> Vec<u8>{
         let mut header_bytes = Vec::with_capacity(4);
         header_bytes.push(self.syn);
         header_bytes.push(self.addr);
         header_bytes.push(self.r#type);
         header_bytes.push(self.count);
-
         header_bytes
     }
 }
 //
-//
+/// Struct `UpdMessage`
+/// - `header` - contains the UPD header information
+/// - `data` - array of values
 pub struct UpdMessage{
     pub header: UdpHeader,
     pub data: Vec<u8>,
@@ -60,10 +69,10 @@ impl UpdMessage{
     }
     //
     /// Convert fields of UdpMessage to Vector
-    pub fn message_to_bytes(&self) -> Vec<u8>{
+    pub fn message(&self) -> Vec<u8>{
         let mut message_bytes = Vec::new();
 
-        for bytes in self.header.header_to_bytes(){
+        for bytes in self.header.to_bytes(){
             message_bytes.push(bytes);
         }
 
@@ -74,6 +83,12 @@ impl UpdMessage{
         message_bytes
     }
 }
+//
+/// Struct `MainService`
+/// - `dbg_id` - id for debugging
+/// - `name` - name of the service
+/// - `conf` - configuration settings for the service
+/// - `exit` - boolean flag for monitoring the operation of the service
 pub struct MainService{
     dbg_id: String,
     name: Name,
@@ -91,7 +106,7 @@ impl MainService {
             exit: Arc::new(AtomicBool::new(false)),
         }
     }
-    ///
+    //
     /// Bind the UDP socket
     fn udp_bind(addr: impl ToSocketAddrs + std::fmt::Display) -> Result<UdpSocket, Error> {
         // UDP Bind 
@@ -145,8 +160,8 @@ impl Service for MainService {
     fn run(&mut self) -> Result<ServiceHandles<()>, String> {
         info!("{}.run | Starting...", self.dbg_id);
         let dbg_id = self.dbg_id.clone();
-        let conf_tree = self.conf.clone();
         let exit = self.exit.clone();
+        let conf = self.conf.clone();
         info!("{}.run | Preparing thread...", dbg_id);
 
         let handle = thread::Builder::new().name(format!("{}.run", dbg_id.clone())).spawn(move || {
@@ -154,36 +169,32 @@ impl Service for MainService {
             let interval = Duration::from_secs_f64(interval);
             let mut cycle = ServiceCycle::new(&dbg_id, interval);
             let addr = "127.0.0.1:15181"; //other address in string format
-
-            let config = MainService::new(&dbg_id, conf_tree);
-            let mut buf = Vec::with_capacity(512);
+            let mut buf = Buffer::new(512);
 
             loop {
-
-                for (freq, amp, phi) in config.conf.signal.iter(){
+                for (freq, amp, phi) in conf.signal.iter(){
                     let amplitude = amp;
-                    buf.push(amplitude);
-
-                    if (buf.capacity() == buf.len()){
-
-                        match Self::udp_bind(addr){
-                            Ok(socket) => {
-                                cycle.start();
-                                let header = UdpHeader::new(0, 0, 32, 255);
-
-                                let bytes: &[u8] = unsafe {
-                                    std::slice::from_raw_parts(buf.as_ptr() as *const u8, buf.len() * 4)
-                                };
-
-                                let message = UpdMessage::new(header, bytes.to_vec());
-
-                                // &[u8]
-                                socket.send(&message.message_to_bytes()).expect("mmmm");
-
-                                buf.clear();
-                                cycle.wait();
+                    match buf.add(*amplitude){
+                        Some(_) =>{
+                            match Self::udp_bind(addr){
+                                Ok(socket) => {
+                                    cycle.start();
+                                    let header = UdpHeader::new(0, 0, 32, 255);
+                                    let buf_i16 = buf.array.clone();
+                                    let bytes = buf_i16.iter().flat_map(|&byte|byte.to_ne_bytes()).collect();
+    
+                                    let message = UpdMessage::new(header, bytes);
+    
+                                    // &[u8]
+                                    socket.send(&message.message()).expect("Failed to send message");
+    
+                                    cycle.wait();
+                                }
+                                Err(err) => log::error!("{}.run | Udp bind error: {}", dbg_id, err),
                             }
-                            Err(err) => log::error!("{}.run | Udp bind error: {}", dbg_id, err),
+                        }
+                        _ => {
+                            continue;
                         }
                     }
                 }

@@ -3,7 +3,7 @@
 /// - `array` -  vector for buffers values
 /// - `index` - length of the buffer
 pub struct Buffer {
-    array: Vec<i16>,
+    pub array: Vec<i16>,
     index: usize,
     len: usize,
 }
