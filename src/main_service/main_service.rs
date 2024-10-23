@@ -9,10 +9,9 @@ use sal_sync::services::{conf::conf_tree::{self, ConfTree}, entity::{
         // }, 
 }, service::{service::Service, service_cycle::ServiceCycle, service_handles::ServiceHandles}, types::type_of::TypeOf};
 use serde::de::value;
-
 use super::main_service_config::MainServiceConf;
 use crate::Buffer;
-//
+///
 /// Struct `UpdHeader`
 /// - `syn` - message starts with
 /// - `addr` - address of the input channel
@@ -27,7 +26,7 @@ pub struct UdpHeader {
 //
 //
 impl UdpHeader{
-    //
+    ///
     /// Creates a header for udp
     pub fn new(syn: u8, addr: u8, r#type: u8, count:  u8) -> Self{
         Self{
@@ -37,10 +36,10 @@ impl UdpHeader{
             count,
         }
     }
-    //
+    ///
     /// Convert fields of UdpHeader to Vector
     pub fn to_bytes(&self) -> Vec<u8>{
-        let mut header_bytes = Vec::with_capacity(4);
+        let mut header_bytes = Vec::with_capacity(self.syn.into());
         header_bytes.push(self.syn);
         header_bytes.push(self.addr);
         header_bytes.push(self.r#type);
@@ -48,7 +47,7 @@ impl UdpHeader{
         header_bytes
     }
 }
-//
+///
 /// Struct `UpdMessage`
 /// - `header` - contains the UPD header information
 /// - `data` - array of values
@@ -59,7 +58,7 @@ pub struct UpdMessage{
 //
 //
 impl UpdMessage{
-    //
+    ///
     /// Creates a message for udp
     pub fn new(header: UdpHeader, data: Vec<u8>) -> Self{
         Self{
@@ -67,7 +66,7 @@ impl UpdMessage{
             data,
         }
     }
-    //
+    ///
     /// Convert fields of UdpMessage to Vector
     pub fn message(&self) -> Vec<u8>{
         let mut message_bytes = Vec::new();
@@ -83,7 +82,7 @@ impl UpdMessage{
         message_bytes
     }
 }
-//
+///
 /// Struct `MainService`
 /// - `dbg_id` - id for debugging
 /// - `name` - name of the service
@@ -96,7 +95,7 @@ pub struct MainService{
     exit: Arc<AtomicBool>,
 }
 impl MainService {
-    //
+    ///
     /// Creates new instance of the MainService 
     pub fn new(parent: impl Into<String>, conf: MainServiceConf) -> Self {
         Self {
@@ -106,7 +105,7 @@ impl MainService {
             exit: Arc::new(AtomicBool::new(false)),
         }
     }
-    //
+    ///
     /// Bind the UDP socket
     fn udp_bind(addr: impl ToSocketAddrs + std::fmt::Display) -> Result<UdpSocket, Error> {
         // UDP Bind 
@@ -163,7 +162,6 @@ impl Service for MainService {
         let exit = self.exit.clone();
         let conf = self.conf.clone();
         info!("{}.run | Preparing thread...", dbg_id);
-
         let handle = thread::Builder::new().name(format!("{}.run", dbg_id.clone())).spawn(move || {
             let interval = 0.0; // from sampl_freq & buf_size
             let interval = Duration::from_secs_f64(interval);
@@ -175,19 +173,23 @@ impl Service for MainService {
                 for (freq, amp, phi) in conf.signal.iter(){
                     let amplitude = amp;
                     match buf.add(*amplitude){
-                        Some(_) =>{
+                        Some(array) =>{
                             match Self::udp_bind(addr){
                                 Ok(socket) => {
                                     cycle.start();
-                                    let header = UdpHeader::new(0, 0, 32, 255);
-                                    let buf_i16 = buf.array.clone();
-                                    let bytes = buf_i16.iter().flat_map(|&byte|byte.to_ne_bytes()).collect();
+                                    let header = UdpHeader::new(0, 0, 32, 255); // Replace literals with constants, defined in the responsible classes if possible.
+                                    let bytes = array.iter().flat_map(|&byte|byte.to_ne_bytes()).collect();
     
                                     let message = UpdMessage::new(header, bytes);
-    
-                                    // &[u8]
-                                    socket.send(&message.message()).expect("Failed to send message");
-    
+
+                                    match socket.send(&message.message()){
+                                        Ok(_) => {
+                                            log::debug!("Message has been sent successfully")
+                                        },
+                                        Err(e) => {
+                                            log::error!("{}.run | Message send error: {}", dbg_id, e)
+                                        },
+                                    }
                                     cycle.wait();
                                 }
                                 Err(err) => log::error!("{}.run | Udp bind error: {}", dbg_id, err),
