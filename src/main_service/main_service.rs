@@ -11,77 +11,8 @@ use sal_sync::services::{conf::conf_tree::{self, ConfTree}, entity::{
 use serde::de::value;
 use super::main_service_config::MainServiceConf;
 use crate::Buffer;
-///
-/// Struct `UpdHeader`
-/// - `syn` - message starts with
-/// - `addr` - address of the input channel
-/// - `type` - type of values in the array in data field in struct `UpdMessage`
-/// - `count` - length of the array in the data field in struct `UpdMessage`
-pub struct UdpHeader {
-    pub syn: u8,
-    pub addr: u8,
-    pub r#type: u8,
-    pub count: u8,
-}
-//
-//
-impl UdpHeader{
-    ///
-    /// Creates a header for udp
-    pub fn new(syn: u8, addr: u8, r#type: u8, count:  u8) -> Self{
-        Self{
-            syn,
-            addr,
-            r#type,
-            count,
-        }
-    }
-    ///
-    /// Convert fields of UdpHeader to Vector
-    pub fn to_bytes(&self) -> Vec<u8>{
-        let mut header_bytes = Vec::with_capacity(self.syn.into());
-        header_bytes.push(self.syn);
-        header_bytes.push(self.addr);
-        header_bytes.push(self.r#type);
-        header_bytes.push(self.count);
-        header_bytes
-    }
-}
-///
-/// Struct `UpdMessage`
-/// - `header` - contains the UPD header information
-/// - `data` - array of values
-pub struct UpdMessage{
-    pub header: UdpHeader,
-    pub data: Vec<u8>,
-}
-//
-//
-impl UpdMessage{
-    ///
-    /// Creates a message for udp
-    pub fn new(header: UdpHeader, data: Vec<u8>) -> Self{
-        Self{
-            header,
-            data,
-        }
-    }
-    ///
-    /// Convert fields of UdpMessage to Vector
-    pub fn message(&self) -> Vec<u8>{
-        let mut message_bytes = Vec::new();
 
-        for bytes in self.header.to_bytes(){
-            message_bytes.push(bytes);
-        }
 
-        for &bytes in &self.data{
-            message_bytes.push(bytes);
-        }
-
-        message_bytes
-    }
-}
 ///
 /// Struct `MainService`
 /// - `dbg_id` - id for debugging
@@ -161,12 +92,13 @@ impl Service for MainService {
         let dbg_id = self.dbg_id.clone();
         let exit = self.exit.clone();
         let conf = self.conf.clone();
+        let addr = self.conf.addr.clone();
+
         info!("{}.run | Preparing thread...", dbg_id);
         let handle = thread::Builder::new().name(format!("{}.run", dbg_id.clone())).spawn(move || {
             let interval = 0.0; // from sampl_freq & buf_size
             let interval = Duration::from_secs_f64(interval);
             let mut cycle = ServiceCycle::new(&dbg_id, interval);
-            let addr = "127.0.0.1:15181"; //other address in string format
             let mut buf = Buffer::new(512);
 
             loop {
@@ -174,14 +106,12 @@ impl Service for MainService {
                     let amplitude = amp;
                     match buf.add(*amplitude){
                         Some(array) =>{
-                            match Self::udp_bind(addr){
+                            match Self::udp_bind(addr.clone()){
                                 Ok(socket) => {
                                     cycle.start();
-                                    let header = UdpHeader::new(0, 0, 32, 255); // Replace literals with constants, defined in the responsible classes if possible.
+                                    let header = UdpHeader::new(UdpHeader::DEFAULT_SYN, UdpHeader::DEFAULT_ADDR, UdpHeader::DEFAULT_TYPE, UdpHeader::DEFAULT_COUNT); // Replace literals with constants, defined in the responsible classes if possible.
                                     let bytes = array.iter().flat_map(|&byte|byte.to_ne_bytes()).collect();
-    
                                     let message = UpdMessage::new(header, bytes);
-
                                     match socket.send(&message.message()){
                                         Ok(_) => {
                                             log::debug!("Message has been sent successfully")
