@@ -93,7 +93,6 @@ impl Service for MainService {
         let exit = self.exit.clone();
         let conf = self.conf.clone();
         let addr = self.conf.addr.clone();
-
         info!("{}.run | Preparing thread...", dbg_id);
         let handle = thread::Builder::new().name(format!("{}.run", dbg_id.clone())).spawn(move || {
             let interval = 0.0; // from sampl_freq & buf_size
