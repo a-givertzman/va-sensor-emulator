@@ -1,6 +1,6 @@
-use std::{io::{Error, ErrorKind}, net::{TcpStream, ToSocketAddrs, UdpSocket}, os::unix::net::SocketAddr, sync::{atomic::{AtomicBool, Ordering}, mpsc::Sender, Arc, Mutex}, thread, time::Duration};
+use std::{io::{Error}, net::{ToSocketAddrs, UdpSocket}, os::unix::net::SocketAddr, sync::{atomic::{AtomicBool, Ordering}, mpsc::Sender, Arc, Mutex}, thread, time::Duration};
 use log::{info, warn};
-use sal_sync::services::{conf::conf_tree::ConfTree, entity::{
+use sal_sync::services::{conf::conf_tree::{self, ConfTree}, entity::{
         name::Name, object::Object, point::point::Point
         // services::{
         //     services::Services,
@@ -8,33 +8,16 @@ use sal_sync::services::{conf::conf_tree::ConfTree, entity::{
         //     service::service_handles::ServiceHandles, 
         // }, 
 }, service::{service::Service, service_cycle::ServiceCycle, service_handles::ServiceHandles}, types::type_of::TypeOf};
-
-use crate::amplitude;
-
+use serde::de::value;
 use super::main_service_config::MainServiceConf;
-//
-//
-// impl ServiceConfig{
-//     //
-//     ///
-//     pub fn new(conf: &serde_yaml::Value) -> Self{
-//         let ampl = conf["ample"].as_i64().unwrap_or(0.0) as f64;
-//         let phi = conf["phi"].as_i64().unwrap_or(0.0) as f64;
-//         Self{
-//             ampl,
-//             phi,
-//         }
-//     }
-// }
-//
-//
-pub struct UdpHeader {
-    pub syn: u8,
-    pub addr: u8,
-    pub r#type: u8,
-    pub count: u8,
-    pub data: [u8; 1024],
-}
+use crate::Buffer;
+use super::udp_header::UdpHeader;
+///
+/// Struct `MainService`
+/// - `dbg_id` - id for debugging
+/// - `name` - name of the service
+/// - `conf` - configuration settings for the service
+/// - `exit` - boolean flag for monitoring the operation of the service
 pub struct MainService{
     dbg_id: String,
     name: Name,
@@ -42,7 +25,7 @@ pub struct MainService{
     exit: Arc<AtomicBool>,
 }
 impl MainService {
-    //
+    ///
     /// Creates new instance of the MainService 
     pub fn new(parent: impl Into<String>, conf: MainServiceConf) -> Self {
         Self {
@@ -107,43 +90,43 @@ impl Service for MainService {
         info!("{}.run | Starting...", self.dbg_id);
         let dbg_id = self.dbg_id.clone();
         let exit = self.exit.clone();
+        let conf = self.conf.clone();
+        let addr = self.conf.addr.clone();
         info!("{}.run | Preparing thread...", dbg_id);
         let handle = thread::Builder::new().name(format!("{}.run", dbg_id.clone())).spawn(move || {
             let interval = 0.0; // from sampl_freq & buf_size
             let interval = Duration::from_secs_f64(interval);
             let mut cycle = ServiceCycle::new(&dbg_id, interval);
-            let addr = "127.0.0.1:15181"; //other address in string format
+            let mut buf = Buffer::new(512);
 
-            let parent = "";
-            let conf_tree = ConfTree::new();
-            let config = MainService::new(parent, conf_tree);
-            for(freq, amp, phi) in config.signal{
-                let amplitude = amp;
-                let angle = phi;
-            }
-            let buf:[u8; 0] = [];
-            //let header = todo!("Udp message head, find detales here: https://github.com/a-givertzman/cma-server/issues/123#issue-2478437558");
             loop {
-                match Self::udp_bind(addr) {
-                    Ok(socket) => {
-                        cycle.start();
-                        // 
-                        // do the sampling actions
-                        // - calc amplitude
-                        // - add to buffer
-                        // - if buffer is full
-                        //      do the udp actions
-                        //      - build data splitting buffer amplitudes into bytes
-                        //      - build message using header and data
-                        //      - send message to the socket
-                        let bytes = buf.map(|amp: f64| {
-                            let amp: i16 = amp.round() as i16;
-                            let amp_bytes = amp.to_be_bytes();
-                        });
-                        socket.send(bytes);
-                        cycle.wait();
+                for (freq, amp, phi) in conf.signal.iter(){
+                    let amplitude = amp;
+                    match buf.add(*amplitude){
+                        Some(array) =>{
+                            match Self::udp_bind(addr.clone()){
+                                Ok(socket) => {
+                                    cycle.start();
+                                    let header = UdpHeader::new(UdpHeader::DEFAULT_SYN, UdpHeader::DEFAULT_ADDR, UdpHeader::DEFAULT_TYPE, UdpHeader::DEFAULT_COUNT); // Replace literals with constants, defined in the responsible classes if possible.
+                                    let bytes = array.iter().flat_map(|&byte|byte.to_ne_bytes()).collect();
+                                    let message = UpdMessage::new(header, bytes);
+                                    match socket.send(&message.message()){
+                                        Ok(_) => {
+                                            log::debug!("Message has been sent successfully")
+                                        },
+                                        Err(e) => {
+                                            log::error!("{}.run | Message send error: {}", dbg_id, e)
+                                        },
+                                    }
+                                    cycle.wait();
+                                }
+                                Err(err) => log::error!("{}.run | Udp bind error: {}", dbg_id, err),
+                            }
+                        }
+                        _ => {
+                            continue;
+                        }
                     }
-                    Err(err) => log::error!("{}.run | Udp bind error: {}", dbg_id, err),
                 }
                 if exit.load(Ordering::SeqCst) {
                     break;
