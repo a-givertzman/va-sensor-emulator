@@ -23,7 +23,7 @@ mod udp_message {
     ///
     /// Testing such functionality / behavior
     #[test]
-    fn test_to_bytes() {
+    fn test_build_message() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
         init_once();
         init_each();
