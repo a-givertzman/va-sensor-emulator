@@ -13,10 +13,10 @@ pub struct UdpHeader {
 //
 //
 impl UdpHeader{
-    pub const DEFAULT_SYN: u8 = 0; 
-    pub const DEFAULT_ADDR: u8 = 0;
-    pub const DEFAULT_TYPE: u8 = 16; 
-    pub const DEFAULT_COUNT: u8 = 255; 
+    pub const SYN: u8 = 0; 
+    pub const ADDR: u8 = 0;
+    pub const TYPE: u8 = 16; 
+    pub const COUNT: u8 = 255; 
     ///
     /// Creates a header for udp
     pub fn new(syn: u8, addr: u8, r#type: u8, count:  u8) -> Self{
