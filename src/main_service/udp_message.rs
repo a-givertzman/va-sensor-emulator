@@ -11,7 +11,7 @@ pub struct UpdMessage{
 //
 impl UpdMessage{
     ///
-    /// Creates a message for udp
+    /// Creates a message for UPD
     pub fn new(header: UdpHeader, data: Vec<u8>) -> Self{
         Self{
             header,
