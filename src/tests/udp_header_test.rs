@@ -37,7 +37,7 @@ mod udp_header {
         ];
         for (step, (data, target)) in test_data.iter().enumerate(){
             let header = UdpHeader::new(data.0, data.1, data.2, data.3);
-            log::debug!("step: {}", step);
+            log::info!("step: {}", step);
             log::debug!("syn: {}, addr: {:?}, type: {:?}, count: {:?}\n", header.syn, header.addr, header.r#type, header.count);
             let result = header.to_bytes();
             log::debug!("result: {:?}, target: {:?}", result, target);
