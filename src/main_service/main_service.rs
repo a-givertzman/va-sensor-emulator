@@ -99,7 +99,6 @@ impl Service for MainService {
             let interval = Duration::from_secs_f64(interval);
             let mut cycle = ServiceCycle::new(&dbg_id, interval);
             let mut buf = Buffer::new(512);
-
             loop {
                 for (freq, amp, phi) in conf.signal.iter(){
                     match buf.add(*amp){
@@ -112,10 +111,10 @@ impl Service for MainService {
                                     let message = UpdMessage::new(header, bytes);
                                     match socket.send(&message.build()){
                                         Ok(_) => {
-                                            log::debug!("{}.run | Message has been sent successfully")
+                                            log::debug!("{}.run | Message has been sent successfully", dbg_id);
                                         },
-                                        Err(e) => {
-                                            log::error!("{}.run | Message send error: {}", dbg_id, e)
+                                        Err(err) => {
+                                            log::error!("{}.run | Message send error: {}", dbg_id, err);
                                         },
                                     }
                                     cycle.wait();
