@@ -112,10 +112,10 @@ impl Service for MainService {
                                     match socket.send(&message.build()) {
                                         Ok(_) => {
                                             log::debug!("{}.run | Message has been sent successfully", dbg_id);
-                                        },
+                                        }
                                         Err(err) => {
                                             log::error!("{}.run | Message send error: {}", dbg_id, err);
-                                        },
+                                        }
                                     }
                                     cycle.wait();
                                 }
