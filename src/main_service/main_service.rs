@@ -108,11 +108,11 @@ impl Service for MainService {
                                 Ok(socket) => {
                                     cycle.start();
                                     let header = UdpHeader::new(UdpHeader::SYN, UdpHeader::ADDR, UdpHeader::TYPE, UdpHeader::COUNT);
-                                    let bytes = array.iter().flat_map(|&byte|byte.to_ne_bytes()).collect();
+                                    let bytes = array.iter().flat_map(|&byte| byte.to_ne_bytes()).collect();
                                     let message = UpdMessage::new(header, bytes);
                                     match socket.send(&message.build()){
                                         Ok(_) => {
-                                            log::debug!("Message has been sent successfully")
+                                            log::debug!("{}.run | Message has been sent successfully")
                                         },
                                         Err(e) => {
                                             log::error!("{}.run | Message send error: {}", dbg_id, e)
