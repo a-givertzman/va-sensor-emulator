@@ -100,16 +100,16 @@ impl Service for MainService {
             let mut cycle = ServiceCycle::new(&dbg_id, interval);
             let mut buf = Buffer::new(512);
             loop {
-                for (freq, amp, phi) in conf.signal.iter(){
-                    match buf.add(*amp){
-                        Some(array) =>{
+                for (freq, amp, phi) in conf.signal.iter() {
+                    match buf.add(*amp) {
+                        Some(array) => {
                             match Self::udp_bind(addr.clone()){
                                 Ok(socket) => {
                                     cycle.start();
                                     let header = UdpHeader::new(UdpHeader::SYN, UdpHeader::ADDR, UdpHeader::TYPE, UdpHeader::COUNT);
                                     let bytes = array.iter().flat_map(|&byte| byte.to_ne_bytes()).collect();
                                     let message = UpdMessage::new(header, bytes);
-                                    match socket.send(&message.build()){
+                                    match socket.send(&message.build()) {
                                         Ok(_) => {
                                             log::debug!("{}.run | Message has been sent successfully", dbg_id);
                                         },
