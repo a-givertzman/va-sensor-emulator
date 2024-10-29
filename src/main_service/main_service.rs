@@ -102,16 +102,15 @@ impl Service for MainService {
 
             loop {
                 for (freq, amp, phi) in conf.signal.iter(){
-                    let amplitude = amp;
-                    match buf.add(*amplitude){
+                    match buf.add(*amp){
                         Some(array) =>{
                             match Self::udp_bind(addr.clone()){
                                 Ok(socket) => {
                                     cycle.start();
-                                    let header = UdpHeader::new(UdpHeader::DEFAULT_SYN, UdpHeader::DEFAULT_ADDR, UdpHeader::DEFAULT_TYPE, UdpHeader::DEFAULT_COUNT); // Replace literals with constants, defined in the responsible classes if possible.
+                                    let header = UdpHeader::new(UdpHeader::SYN, UdpHeader::ADDR, UdpHeader::TYPE, UdpHeader::COUNT);
                                     let bytes = array.iter().flat_map(|&byte|byte.to_ne_bytes()).collect();
                                     let message = UpdMessage::new(header, bytes);
-                                    match socket.send(&message.message()){
+                                    match socket.send(&message.build()){
                                         Ok(_) => {
                                             log::debug!("Message has been sent successfully")
                                         },

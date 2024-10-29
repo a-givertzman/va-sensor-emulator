@@ -40,7 +40,7 @@ mod udp_message {
         ];
         for(step, (header, data, target)) in test_data.into_iter().enumerate(){
             let message = UpdMessage::new(UdpHeader::new(header.syn, header.addr, header.r#type, header.count), data.clone());
-            let result = message.build_message();
+            let result = message.build();
             log::debug!("step {} \nresult: {:?}\ntarget: {:?}", step, result, target);
             assert!(result == target, "step {} \nresult: {:?}\ntarget: {:?}", step, result, target);
         }

@@ -20,7 +20,7 @@ impl UpdMessage{
     }
     ///
     /// Convert fields of UdpMessage to Vector
-    pub fn build_message(&self) -> Vec<u8>{
+    pub fn build(&self) -> Vec<u8>{
         let mut message_bytes = Vec::new();
         for bytes in self.header.to_bytes(){
             message_bytes.push(bytes);
