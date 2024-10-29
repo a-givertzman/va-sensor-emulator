@@ -35,13 +35,11 @@ mod udp_header {
             ((0, 0, 16, 255), vec![0, 0, 16, 255]),
             ((0, 0, 0, 0), vec![0, 0, 0, 0]),
         ];
-
         for (step, (data, target)) in test_data.iter().enumerate(){
             let header = UdpHeader::new(data.0, data.1, data.2, data.3);
-            println!("step: {}", step);
-            println!("syn: {}, addr: {:?}, type: {:?}, count: {:?}\n", header.syn, header.addr, header.r#type, header.count);
+            log::debug!("step: {}", step);
+            log::debug!("syn: {}, addr: {:?}, type: {:?}, count: {:?}\n", header.syn, header.addr, header.r#type, header.count);
             let result = header.to_bytes();
-            println!("result: {:?}, target: {:?}", result, target);
             log::debug!("result: {:?}, target: {:?}", result, target);
             assert!(result == *target, "step {} \nresult: {:?}\ntarget: {:?}", step, result, target);
         }
