@@ -1,4 +1,4 @@
-use std::{io::{Error}, net::{ToSocketAddrs, UdpSocket}, os::unix::net::SocketAddr, sync::{atomic::{AtomicBool, Ordering}, mpsc::Sender, Arc, Mutex}, thread, time::Duration};
+use std::{io::Error, net::{ToSocketAddrs, UdpSocket}, os::unix::net::SocketAddr, sync::{atomic::{AtomicBool, Ordering}, mpsc::Sender, Arc, Mutex}, thread, time::Duration};
 use log::{info, warn};
 use sal_sync::services::{conf::conf_tree::{self, ConfTree}, entity::{
         name::Name, object::Object, point::point::Point
@@ -38,11 +38,12 @@ impl MainService {
     }
     ///
     /// Bind the UDP socket
-    fn udp_bind(addr: impl ToSocketAddrs + std::fmt::Display) -> Result<UdpSocket, Error> {
+    pub fn udp_bind(addr: impl ToSocketAddrs + std::fmt::Display) -> Result<UdpSocket, Error> {
         // UDP Bind 
         info!("Start binding to the: {}", addr);
         match UdpSocket::bind(&addr){
             Ok(socket) => {
+                log::info!("MainService.bind | Connected to the: {}", addr);
                 Ok(socket)
             },
             Err(error) => {
@@ -95,10 +96,15 @@ impl Service for MainService {
         let addr = self.conf.addr.clone();
         info!("{}.run | Preparing thread...", dbg_id);
         let handle = thread::Builder::new().name(format!("{}.run", dbg_id.clone())).spawn(move || {
-            let interval = 0.0; // from sampl_freq & buf_size
+            let interval = match conf.sampl_freq{
+                Some(duration) => duration.as_secs_f64(),
+                None => 0.0,
+            };
+            log::info!("interval: {}", interval);
+            let interval = 1.0 / (interval * conf.buf_size as f64); 
             let interval = Duration::from_secs_f64(interval);
             let mut cycle = ServiceCycle::new(&dbg_id, interval);
-            let mut buf = Buffer::new(512);
+            let mut buf = Buffer::new(conf.buf_size as usize);
             loop {
                 for (freq, amp, phi) in conf.signal.iter() {
                     match buf.add(*amp) {
@@ -106,9 +112,12 @@ impl Service for MainService {
                             match Self::udp_bind(addr.clone()){
                                 Ok(socket) => {
                                     cycle.start();
+                                    socket.connect("127.0.0.1:1234").unwrap();
+                                    //socket.connect(addr.clone()).unwrap();
                                     let header = UdpHeader::new(UdpHeader::SYN, UdpHeader::ADDR, UdpHeader::TYPE, UdpHeader::COUNT);
                                     let bytes = array.iter().flat_map(|&byte| byte.to_ne_bytes()).collect();
                                     let message = UpdMessage::new(header, bytes);
+                                    log::debug!("Builded UpdMessage: {:?}", message.build());
                                     match socket.send(&message.build()) {
                                         Ok(_) => {
                                             log::debug!("{}.run | Message has been sent successfully", dbg_id);
