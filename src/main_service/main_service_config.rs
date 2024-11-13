@@ -24,7 +24,7 @@ pub struct MainServiceConf {
     pub name: Name,
     pub addr: String,
     pub sampl_freq: Option<Duration>,
-    pub buf_size: u64,
+    pub buf_size: u32,
     pub signal: Vec<(f64, f64, f64)>,
 }
 //
@@ -46,7 +46,7 @@ impl MainServiceConf {
         log::debug!("{}.new | address: {:?}", dbg_id, addr);
         let sampl_freq = self_conf.get_duration("sampl-freq");
         log::debug!("{}.new | cycle: {:?}", dbg_id, sampl_freq);
-        let buf_size = self_conf.get_param_value("buf-size").unwrap().as_u64().unwrap();
+        let buf_size = self_conf.get_param_value("buf-size").unwrap().as_u64().unwrap() as u32;
         log::debug!("{}.new | buf_size: {:?}", dbg_id, buf_size);
         let signal_conf = self_conf.get_param_value("signal").unwrap();
         let signal_conf = signal_conf.as_mapping().unwrap();

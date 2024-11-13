@@ -114,7 +114,7 @@ impl Service for MainService {
                                     cycle.start();
                                     socket.connect("127.0.0.1:1234").unwrap();
                                     //socket.connect(addr.clone()).unwrap();
-                                    let header = UdpHeader::new(UdpHeader::SYN, UdpHeader::ADDR, UdpHeader::TYPE, UdpHeader::COUNT);
+                                    let header = UdpHeader::new(UdpHeader::SYN, UdpHeader::ADDR, UdpHeader::TYPE, conf.buf_size);
                                     let bytes = array.iter().flat_map(|&byte| byte.to_ne_bytes()).collect();
                                     let message = UpdMessage::new(header, bytes);
                                     log::debug!("Builded UpdMessage: {:?}", message.build());
