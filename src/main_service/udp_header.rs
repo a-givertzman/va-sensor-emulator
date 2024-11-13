@@ -30,7 +30,7 @@ impl UdpHeader{
     ///
     /// Convert fields of UdpHeader to Vector
     pub fn to_bytes(&self) -> Vec<u8>{
-        let mut header_bytes = Vec::with_capacity(self.syn.into());
+        let mut header_bytes = vec![];
         header_bytes.push(self.syn);
         header_bytes.push(self.addr);
         header_bytes.push(self.r#type);
