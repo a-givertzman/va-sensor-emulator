@@ -8,7 +8,7 @@ pub struct UdpHeader {
     pub syn: u8,
     pub addr: u8,
     pub r#type: u8,
-    pub count: u8,
+    pub count: u32,
 }
 //
 //
@@ -16,10 +16,10 @@ impl UdpHeader{
     pub const SYN: u8 = 0; 
     pub const ADDR: u8 = 0;
     pub const TYPE: u8 = 16; 
-    pub const COUNT: u8 = 255; 
+    pub const COUNT: u32 = 512; 
     ///
     /// Creates a header for udp
-    pub fn new(syn: u8, addr: u8, r#type: u8, count:  u8) -> Self{
+    pub fn new(syn: u8, addr: u8, r#type: u8, count:  u32) -> Self{
         Self{
             syn,
             addr,
@@ -34,7 +34,7 @@ impl UdpHeader{
         header_bytes.push(self.syn);
         header_bytes.push(self.addr);
         header_bytes.push(self.r#type);
-        header_bytes.push(self.count);
+        header_bytes.extend_from_slice(&self.count.to_be_bytes());
         header_bytes
     }
 }

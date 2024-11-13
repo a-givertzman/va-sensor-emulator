@@ -26,8 +26,8 @@ mod main_service {
     ///
     /// Testing such functionality / behavior
     #[test]
-    fn test_main_service() {
-        DebugSession::init(LogLevel::Info, Backtrace::Short);
+    fn run() {
+        DebugSession::init(LogLevel::Debug, Backtrace::Short);
         init_once();
         init_each();
         log::debug!("");
@@ -35,10 +35,9 @@ mod main_service {
         log::debug!("\n{}", self_id);
         let test_duration = TestDuration::new(self_id, Duration::from_secs(5));
         test_duration.run().unwrap();
-
         let target_count = 3;
         let self_id = "test";
-        let yaml_file = fs::read_to_string("/home/lisa/Downloads/code/va-sensor-emulator/src/tests/main_service_config.yaml")
+        let yaml_file = fs::read_to_string("src/tests/main_service_config.yaml")
         .expect("Failed to read yaml file.");
         let conf_tree: serde_yaml::Value = serde_yaml::from_str(&yaml_file).unwrap();
         let conf = MainServiceConf::from_yaml(self_id, &conf_tree);
@@ -49,20 +48,37 @@ mod main_service {
                 let client_handle = thread::spawn(move  || {
                     let mut received = 0;
                     while received < target_count {
-                        let mut buffer = [0; 512];
+                        let mut buffer = [0; 1024];
                         match client.recv(&mut buffer) {
                             Ok(bytes) => {
                                 received += 1;
                                 log::debug!("step: {}", received);
-                                match bytes{
-                                    0..=512 => {
-                                        log::info!("Received {} bytes", bytes);
-                                        println!("Received {} bytes", bytes);
-                                        let package = &buffer[4..bytes];  
-                                        let header = UdpHeader::new(buffer[0], buffer[1], buffer[2], buffer[3]);
-                                        let message = UpdMessage::new(header, package.to_vec());
+                                match buffer {
+                                    [UdpHeader::SYN, UdpHeader::ADDR, UdpHeader::TYPE, _, _, _, _, ..] => {
+                                        let size = u32::from_be_bytes(buffer.get(3..6).unwrap().try_into().unwrap()) as usize;
+                                        let header = UdpHeader::new(
+                                            buffer[0],
+                                            buffer[1],
+                                            buffer[2],
+                                            size as u32,
+                                        );
+                                        let data = buffer.get(6..size).unwrap().try_into().unwrap();
+                                        let message = UpdMessage::new(header, data);
                                         log::info!("Received UdpMessage: {:?}", message.build());
                                     }
+                                    // 0..=1024 => {
+                                    //     log::info!("Received {} bytes", bytes);
+                                    //     println!("Received {} bytes", bytes);
+                                    //     let package = &buffer[4..bytes];  
+                                    //     let header = UdpHeader::new(
+                                    //         buffer[0],
+                                    //         buffer[1],
+                                    //         buffer[2],
+                                    //         u32::from_be_bytes(buffer[3..6].try_into().unwrap()),
+                                    //     );
+                                    //     let message = UpdMessage::new(header, package.to_vec());
+                                    //     log::info!("Received UdpMessage: {:?}", message.build());
+                                    // }
                                     _ => {
                                         panic!("Incorrect message: {:?}", bytes);
                                     }
