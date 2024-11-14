@@ -1,4 +1,12 @@
 #!/bin/bash
+#
+############ REQUIREMENTS ############
+# 
+# !!!   Ferst install fallowing   !!!
+#          cargo install grcov
+#          rustup component add llvm-tools-preview
+#
+#
 ############ INSTALLATION PARAMETERS ############
 
 passCondition=30    # min percent to be passed
@@ -17,7 +25,8 @@ NC='\033[0m' # No Color
 export RUSTFLAGS='-Cinstrument-coverage'
 export LLVM_PROFILE_FILE='target/coverage/%p-%m.profraw'
 
-rm -rf ./target/coverage
+rm -rf target/coverage/
+mkdir -p target/coverage/
 
 cargo test --release --no-fail-fast 2>/dev/null
 
