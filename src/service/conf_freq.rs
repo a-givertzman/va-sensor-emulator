@@ -53,8 +53,8 @@ impl FromStr for ConfFreqUnit {
 /// ````
 #[derive(Debug, Deserialize, PartialEq)]
 pub struct ConfDuration {
-    pub value: u64,
-    pub unit: ConfFreqUnit,
+    value: u64,
+    unit: ConfFreqUnit,
 }
 //
 // 
@@ -69,7 +69,7 @@ impl ConfDuration {
     }
     ///
     /// 
-    pub fn toDuration(&self) -> Duration {
+    pub fn to_duration(&self) -> Duration {
         match self.unit {
             ConfFreqUnit::Nanos => Duration::from_nanos(self.value),
             ConfFreqUnit::Micros => Duration::from_micros(self.value),
@@ -88,15 +88,15 @@ impl FromStr for ConfDuration {
         trace!("ConfDuration.from_str | input: {}", input);
         let re = r#"^[ \t]*(\d+)[ \t]*(ns|us|ms|s|m|h){0,1}[ \t]*$"#;
         let re = RegexBuilder::new(re).multi_line(true).build().unwrap();
-        let groupValue = 1;
-        let groupUnit = 2;
+        let group_value = 1;
+        let group_unit = 2;
         match re.captures(input) {
             Some(caps) => {
-                match &caps.get(groupValue) {
+                match &caps.get(group_value) {
                     Some(first) => {
                         match first.as_str().parse() {
                             Ok(value) => {
-                                let unit = match &caps.get(groupUnit) {
+                                let unit = match &caps.get(group_unit) {
                                     Some(u) => match ConfFreqUnit::from_str(u.as_str()) {
                                         Ok(unit) => Ok(unit),
                                         Err(err) => Err(err),

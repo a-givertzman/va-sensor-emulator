@@ -1,7 +1,7 @@
 #[cfg(test)]
 
 mod angle {
-    use std::{f64::consts::PI, sync::Once, time::{Duration, Instant}};
+    use std::{f64::consts::PI, sync::Once, time::Duration};
     use testing::stuff::max_test_duration::TestDuration;
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
     use crate::{angle::Angle, stuff::approx_eq::AproxEq};
@@ -55,11 +55,9 @@ mod angle {
                     break;
                 }
             }
-            
             log::debug!("step {} \nresult: {:?}\ntarget: {:?}", step, count, target);
             assert!(target == count, "step {} \nresult: {:?}\ntarget: {:?}", step, count, target);
         }
-        
         test_duration.exit();
     }    
     ///

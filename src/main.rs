@@ -6,30 +6,28 @@ mod complex;
 mod service;
 mod conf;
 mod main_service;
+mod error;
+mod debug;
 
 #[cfg(test)]
 mod tests;
 
-use angle::Angle;
-use buffer::Buffer;
+use debug::dbg_id::DbgId;
+use main_service::{main_service::MainService, main_service_config::MainServiceConf};
+use sal_sync::services::service::service::Service;
 //
 //
 fn main() {
-
-    let buffer_len = 1024;      // to be loaded from the config.yaml
-    let sample_freq = 320_000;  // to be loaded from the config.yaml
-    let phase = 0.0;  // to be loaded from the config.yaml
-    let mut buffer = Buffer::new(buffer_len);
-    let mut angle = Angle::new(sample_freq, phase);
-    loop {
-        let angle_value = angle.add();
-        match buffer.add(angle_value) {
-            Some(_) => { // Some(_)
-                // send buffer
-                //println!("Created array is {:?}", buffer.array);
-                //buffer.array.clear();
-            }
-            None => println!("Added value is {}", angle_value)
-        };
+    let dbgid = DbgId("main".into());
+    let path = "config.yaml";
+    let conf = MainServiceConf::read(&dbgid, path);
+    let mut main_service = MainService::new(conf);
+    match main_service.run() {
+        Ok(handles) => for (_, h) in handles {
+            h.join().unwrap();
+        }
+        Err(err) => {
+            log::error!("{} | Error: {:#?}", dbgid, err);
+        }
     }
 }
