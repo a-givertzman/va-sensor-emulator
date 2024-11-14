@@ -54,7 +54,7 @@ mod main_service {
                                 match buffer {
                                     [UdpHeader::SYN, UdpHeader::ADDR, UdpHeader::TYPE, _, _, _, _, ..] => {
                                         log::debug!("{} | syn: {},  addr: {},  type: {},  size: {:?}", dbgid, buffer[0], buffer[1], buffer[2], buffer.get(3..7));
-                                        let size = u32::from_be_bytes(buffer.get(3..6).unwrap().try_into().unwrap()) as usize;
+                                        let size = u32::from_be_bytes(buffer.get(3..7).unwrap().try_into().unwrap()) as usize;
                                         let header = UdpHeader::new(
                                             buffer[0],
                                             buffer[1],
