@@ -8,10 +8,11 @@ use sal_sync::services::{entity::{
         //     service::service_handles::ServiceHandles, 
         // }, 
 }, service::{service::Service, service_cycle::ServiceCycle, service_handles::ServiceHandles}};
+use crate::buffer::Buffer;
+
 use super::main_service_config::MainServiceConf;
 use super::udp_header::UdpHeader;
 use super::udp_message::UpdMessage;
-use crate::Buffer;
 ///
 /// Struct `MainService`
 /// - `dbg_id` - id for debugging
