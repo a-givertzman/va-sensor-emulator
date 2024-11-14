@@ -37,4 +37,3 @@ jobs:
           rustup component add llvm-tools-preview
           # cargo test --release --no-fail-fast
           ./.github/workflows/coverage.sh 
-  

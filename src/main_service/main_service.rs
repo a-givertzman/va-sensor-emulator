@@ -59,7 +59,6 @@ impl Object for MainService {
     fn id(&self) -> &str {
         &self.dbg_id
     }
-    
     fn name(&self) -> Name {
         self.name.clone()
     }

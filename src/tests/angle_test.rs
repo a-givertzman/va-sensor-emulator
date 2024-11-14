@@ -55,11 +55,9 @@ mod angle {
                     break;
                 }
             }
-            
             log::debug!("step {} \nresult: {:?}\ntarget: {:?}", step, count, target);
             assert!(target == count, "step {} \nresult: {:?}\ntarget: {:?}", step, count, target);
         }
-        
         test_duration.exit();
     }    
     ///
