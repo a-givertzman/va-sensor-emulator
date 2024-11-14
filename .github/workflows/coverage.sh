@@ -22,8 +22,7 @@ GRAY='\033[1;30m'
 NC='\033[0m' # No Color
 
 export CARGO_INCREMENTAL=0
-# export RUSTFLAGS='-Cinstrument-coverage'
-export RUSTFLAGS="-Zprofile -Ccodegen-units=1 -Copt-level=0 -Clink-dead-code -Coverflow-checks=off -Zpanic_abort_tests -Cpanic=abort"
+export RUSTFLAGS='-Cinstrument-coverage'
 export RUSTDOCFLAGS="-Cpanic=abort"
 export LLVM_PROFILE_FILE='target/coverage/%p-%m.profraw'
 
