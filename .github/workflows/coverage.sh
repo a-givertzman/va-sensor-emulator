@@ -21,8 +21,10 @@ GREEN='\033[0;32m'
 GRAY='\033[1;30m'
 NC='\033[0m' # No Color
 
-# export CARGO_INCREMENTAL=0
-export RUSTFLAGS='-Cinstrument-coverage'
+export CARGO_INCREMENTAL=0
+# export RUSTFLAGS='-Cinstrument-coverage'
+export RUSTFLAGS="-Zprofile -Ccodegen-units=1 -Copt-level=0 -Clink-dead-code -Coverflow-checks=off -Zpanic_abort_tests -Cpanic=abort"
+export RUSTDOCFLAGS="-Cpanic=abort"
 export LLVM_PROFILE_FILE='target/coverage/%p-%m.profraw'
 
 rm -rf target/coverage/
@@ -30,7 +32,7 @@ mkdir -p target/coverage/
 
 cargo test --release --no-fail-fast 2>/dev/null
 
-grcov target/coverage -s . --binary-path target/release -o target/coverage --keep-only 'src/*' --output-types html,covdir --ignore 'src/tests/*'
+grcov target/coverage --binary-path target/release -s . -o target/coverage --keep-only 'src/*' --output-types html,covdir --ignore 'src/tests/*'
 
 ############ REPORT ############
 
