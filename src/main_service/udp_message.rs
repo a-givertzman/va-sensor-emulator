@@ -6,8 +6,8 @@ use super::udp_header::UdpHeader;
 /// - header - contains the UPD header information
 /// - data - array of values
 pub struct UpdMessage{
-    pub header: UdpHeader,
-    pub data: Vec<u8>,
+    header: UdpHeader,
+    data: Vec<u8>,
 }
 //
 //

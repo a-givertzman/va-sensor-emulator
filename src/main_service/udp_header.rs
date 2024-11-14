@@ -5,10 +5,10 @@
 /// - type - type of values in the array in data field in struct UpdMessage
 /// - count - length of the array in the data field in struct UpdMessage
 pub struct UdpHeader {
-    pub syn: u8,
-    pub addr: u8,
-    pub r#type: u8,
-    pub count: u32,
+    syn: u8,
+    addr: u8,
+    r#type: u8,
+    count: u32,
 }
 //
 //

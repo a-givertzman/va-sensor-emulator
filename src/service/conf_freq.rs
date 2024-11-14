@@ -53,8 +53,8 @@ impl FromStr for ConfFreqUnit {
 /// ````
 #[derive(Debug, Deserialize, PartialEq)]
 pub struct ConfDuration {
-    pub value: u64,
-    pub unit: ConfFreqUnit,
+    value: u64,
+    unit: ConfFreqUnit,
 }
 //
 // 
