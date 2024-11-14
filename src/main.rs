@@ -6,6 +6,8 @@ mod complex;
 mod service;
 mod conf;
 mod main_service;
+mod error;
+mod debug;
 
 #[cfg(test)]
 mod tests;

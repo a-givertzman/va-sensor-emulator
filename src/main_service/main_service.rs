@@ -1,14 +1,13 @@
-use std::{io::Error, net::{ToSocketAddrs, UdpSocket}, os::unix::net::SocketAddr, sync::{atomic::{AtomicBool, Ordering}, mpsc::Sender, Arc, Mutex}, thread, time::Duration};
+use std::{io::Error, net::{ToSocketAddrs, UdpSocket}, sync::{atomic::{AtomicBool, Ordering}, mpsc::Sender, Arc}, thread, time::Duration};
 use log::{info, warn};
-use sal_sync::services::{conf::conf_tree::{self, ConfTree}, entity::{
+use sal_sync::services::{entity::{
         name::Name, object::Object, point::point::Point
         // services::{
         //     services::Services,
         //     service::service::Service,
         //     service::service_handles::ServiceHandles, 
         // }, 
-}, service::{service::Service, service_cycle::ServiceCycle, service_handles::ServiceHandles}, types::type_of::TypeOf};
-use serde::de::value;
+}, service::{service::Service, service_cycle::ServiceCycle, service_handles::ServiceHandles}};
 use super::main_service_config::MainServiceConf;
 use super::udp_header::UdpHeader;
 use super::udp_message::UpdMessage;
@@ -28,7 +27,7 @@ pub struct MainService{
 impl MainService {
     ///
     /// Creates new instance of the MainService 
-    pub fn new(parent: impl Into<String>, conf: MainServiceConf) -> Self {
+    pub fn new(conf: MainServiceConf) -> Self {
         Self {
             dbg_id: conf.name.join(),
             name: conf.name.clone(),
@@ -79,7 +78,7 @@ impl std::fmt::Debug for MainService {
 impl Service for MainService {
     //
     // 
-    fn get_link(&mut self, name: &str) -> Sender<Point> {
+    fn get_link(&mut self, _name: &str) -> Sender<Point> {
         panic!("{}.get_link | Does not support get_link", self.id())
         // match self.rxSend.get(name) {
         //     Some(send) => send.clone(),
@@ -106,7 +105,7 @@ impl Service for MainService {
             let mut cycle = ServiceCycle::new(&dbg_id, interval);
             let mut buf = Buffer::new(conf.buf_size as usize);
             loop {
-                for (freq, amp, phi) in conf.signal.iter() {
+                for (_freq, amp, _phi) in conf.signal.iter() {
                     match buf.add(*amp) {
                         Some(array) => {
                             match Self::udp_bind(addr.clone()){

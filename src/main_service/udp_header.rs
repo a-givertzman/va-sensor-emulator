@@ -16,15 +16,14 @@ impl UdpHeader{
     pub const SYN: u8 = 0; 
     pub const ADDR: u8 = 0;
     pub const TYPE: u8 = 16; 
-    pub const COUNT: u32 = 512; 
     ///
     /// Creates a header for udp
-    pub fn new(syn: u8, addr: u8, r#type: u8, count:  u32) -> Self{
+    pub fn new(syn: u8, addr: u8, r#type: u8, size:  u32) -> Self{
         Self{
             syn,
             addr,
             r#type,
-            count,
+            count: size,
         }
     }
     ///

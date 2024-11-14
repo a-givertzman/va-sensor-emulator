@@ -1,6 +1,4 @@
-use log::info;
 use regex::RegexBuilder;
-use serde_yaml::to_string;
 use std::{fs, time::Duration};
 use sal_sync::services::{
     conf::conf_tree::ConfTree, entity::name::Name,
